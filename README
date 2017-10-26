@@ -1,0 +1,12 @@
+This library for work with stack.
+Description:
+1) Stack implemented on a unidirectional list.
+2) The number of stacks is unlimited.
+3) You can create a stack for storing an element of any size.
+4) Good for storing elements with large size since
+	the elements are passed through pointers.	
+5) Function memcpy() is used to copy elements of any size
+	but if you know the size of the elements you can replace it
+	with a function to work with this element but you will lose
+	the ability to create stacks with elements of
+	a different size but will win the speed of the program.

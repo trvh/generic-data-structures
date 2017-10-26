@@ -1,0 +1,10 @@
+#ifndef COMMON_CONSTS_HEADER
+#define COMMON_CONSTS_HEADER
+
+enum {
+	IS_FILLED,
+	IS_FINDED,
+	IS_EMPTY,
+};
+
+#endif
