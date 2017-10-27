@@ -1,10 +1,10 @@
 #include <string.h>
 #include <assert.h>
 
-#include "slist.h"
+#include "gds_slist.h"
 
 void
-slist_create(struct slist_gds *list, size_t size)
+slist_create(struct gds_slist *list, size_t size)
 {
 	assert(list != NULL);
 	assert(size > 0);
@@ -15,9 +15,9 @@ slist_create(struct slist_gds *list, size_t size)
 }
 
 void
-slist_delete(struct slist_gds *list)
+slist_delete(struct gds_slist *list)
 {
-	struct node_gds *node, *next;
+	struct gds_node *node, *next;
 
 	assert(list != NULL);
 	
@@ -29,9 +29,9 @@ slist_delete(struct slist_gds *list)
 }
 
 void
-slist_insert(struct slist_gds *list, void *data)
+slist_insert(struct gds_slist *list, void *data)
 {
-	struct node_gds  *node;
+	struct gds_node  *node;
 	void  *buffer;
 	size_t size;
 	
@@ -43,7 +43,7 @@ slist_insert(struct slist_gds *list, void *data)
 	
 	memcpy(buffer, data, size);
 	
-	node = (struct node_gds *) malloc(sizeof(struct node_gds));
+	node = (struct gds_node *) malloc(sizeof(struct gds_node));
 	
 	node->data = buffer;
 	node->next = list->head;
@@ -52,9 +52,9 @@ slist_insert(struct slist_gds *list, void *data)
 }
 
 void
-slist_remove(struct slist_gds *list, void *data)
+slist_remove(struct gds_slist *list, void *data)
 {
-	struct node_gds *prev, *node, *next;
+	struct gds_node *prev, *node, *next;
 	size_t size = list->size;
 	
 	assert(list != NULL);
@@ -78,9 +78,9 @@ slist_remove(struct slist_gds *list, void *data)
 }
 
 void *
-slist_search(struct slist_gds *list, void *data)
+slist_search(struct gds_slist *list, void *data)
 {
-	struct node_gds *node, *next;
+	struct gds_node *node, *next;
 	size_t size = list->size;
 	
 	assert(list != NULL);
@@ -95,9 +95,9 @@ slist_search(struct slist_gds *list, void *data)
 }
 
 void *
-slist_index(struct slist_gds *list, size_t index)
+slist_index(struct gds_slist *list, size_t index)
 {
-	struct node_gds *node;
+	struct gds_node *node;
 		
 	assert(list != NULL);
 	assert(list->count > 0);

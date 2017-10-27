@@ -1,40 +1,40 @@
 #include <stdio.h> 
 #include <assert.h> 
-#include "bin_tree.h"
+#include "gds_bin_tree.h"
 
-struct tnode_gds {
-	struct tnode_gds *left;
-	struct tnode_gds *right;
+struct gds_tnode {
+	struct gds_tnode *left;
+	struct gds_tnode *right;
 	int				  value;
 	size_t			  count;
 };
 
 struct tnodes {
-	struct tnode_gds *prev;
-	struct tnode_gds *curr;
+	struct gds_tnode *prev;
+	struct gds_tnode *curr;
 };
 
-static void  free_node(struct tnode_gds *node);
+static void  free_node(struct gds_tnode *node);
 
-static struct tnode_gds *insert_node(struct tnode_gds *node, int value);
-static int found_node(struct tnode_gds *node, int value);
+static struct gds_tnode *insert_node(struct gds_tnode *node, int value);
+static int found_node(struct gds_tnode *node, int value);
 
-static int get_remove_node(struct tree_gds *tree,
+static int get_remove_node(struct gds_tree *tree,
 							int value,
 							struct tnodes *nodes);
 
-static int found_remove_node(struct tnode_gds *prev, 
-							struct tnode_gds *curr,
+static int found_remove_node(struct gds_tnode *prev, 
+							struct gds_tnode *curr,
 							int value,
 							struct tnodes *nodes);
 
-static struct tnode_gds *found_max_left_node(struct tnode_gds *prev,
-											struct tnode_gds *curr);
+static struct gds_tnode *found_max_left_node(struct gds_tnode *prev,
+											struct gds_tnode *curr);
 
-static void tree_print(struct tnode_gds *node);
+static void tree_print(struct gds_tnode *node);
 
 void
-tree_create(struct tree_gds *tree)
+tree_create(struct gds_tree *tree)
 {
 	assert(tree != NULL);
 
@@ -42,7 +42,7 @@ tree_create(struct tree_gds *tree)
 }
 
 void
-tree_delete(struct tree_gds *tree)
+tree_delete(struct gds_tree *tree)
 {
 	assert(tree != NULL);
 
@@ -51,7 +51,7 @@ tree_delete(struct tree_gds *tree)
 }
 
 void
-free_node(struct tnode_gds *node)
+free_node(struct gds_tnode *node)
 {
 	if (node != NULL) {
 		free_node(node->left);
@@ -63,14 +63,14 @@ free_node(struct tnode_gds *node)
 }
 
 void
-tree_insert(struct tree_gds *tree, int value)
+tree_insert(struct gds_tree *tree, int value)
 {
 	assert(tree != NULL);
 
-	struct tnode_gds *root = tree->root;
+	struct gds_tnode *root = tree->root;
 	if (root == NULL) {
-		struct tnode_gds *node  =
-			(struct tnode_gds *) malloc(sizeof(struct tnode_gds));
+		struct gds_tnode *node  =
+			(struct gds_tnode *) malloc(sizeof(struct gds_tnode));
 		
 		node->value = value;
 		node->count = 1;
@@ -86,11 +86,11 @@ tree_insert(struct tree_gds *tree, int value)
 	}
 }
 
-struct tnode_gds *
-insert_node(struct tnode_gds *node, int value)
+struct gds_tnode *
+insert_node(struct gds_tnode *node, int value)
 {
 	if (node == NULL) { 
-		node = (struct tnode_gds *) malloc(sizeof(struct tnode_gds)); 
+		node = (struct gds_tnode *) malloc(sizeof(struct gds_tnode)); 
 		node->value  = value;
 		node->count  = 1;
 		node->left   = node->right = NULL;
@@ -105,7 +105,7 @@ insert_node(struct tnode_gds *node, int value)
 }
 
 int
-tree_search(struct tree_gds *tree, int value)
+tree_search(struct gds_tree *tree, int value)
 {
 	assert(tree != NULL);
 
@@ -113,7 +113,7 @@ tree_search(struct tree_gds *tree, int value)
 }
 
 int
-found_node(struct tnode_gds *node, int value)
+found_node(struct gds_tnode *node, int value)
 {
 	if (node == NULL)
 		return IS_EMPTY;
@@ -126,13 +126,13 @@ found_node(struct tnode_gds *node, int value)
 }
 
 void
-tree_remove(struct tree_gds *tree, int value)
+tree_remove(struct gds_tree *tree, int value)
 {
 	assert(tree != NULL);
 
 	if (tree->root != NULL) { /*tree is not empty*/
 		struct tnodes  nodes;
-		struct tnode_gds  *curr, **prev;
+		struct gds_tnode  *curr, **prev;
 
 		if (get_remove_node(tree, value, &nodes) == IS_EMPTY)
 			/*a remove node is root or tree have not node with value*/
@@ -151,7 +151,7 @@ tree_remove(struct tree_gds *tree, int value)
 		} else if (curr->left == NULL && curr->right != NULL) {
 			*prev = curr->right;
 		} else {
-			struct tnode_gds *max_left = found_max_left_node(curr, curr->left);
+			struct gds_tnode *max_left = found_max_left_node(curr, curr->left);
 			max_left->right = curr->right; /*save old references*/
 			max_left->left  = curr->left;
 			*prev = max_left;/*replace a remove node with found one*/
@@ -160,8 +160,8 @@ tree_remove(struct tree_gds *tree, int value)
 	}
 }
 
-struct tnode_gds *
-found_max_left_node(struct tnode_gds *prev, struct tnode_gds *curr)
+struct gds_tnode *
+found_max_left_node(struct gds_tnode *prev, struct gds_tnode *curr)
 {
 	if (curr->right == NULL) {
 		if (prev->left == curr) /*left or right node?*/
@@ -175,11 +175,11 @@ found_max_left_node(struct tnode_gds *prev, struct tnode_gds *curr)
 }
 
 int
-get_remove_node(struct tree_gds *tree, int value, struct tnodes *nodes)
+get_remove_node(struct gds_tree *tree, int value, struct tnodes *nodes)
 {
 	assert(tree != NULL);
 
-	struct tnode_gds *root = tree->root;
+	struct gds_tnode *root = tree->root;
 	
 	if (root->value == value) { /*a tree_remove node is root*/
 		if (root->left == NULL && root->right == NULL) {
@@ -189,7 +189,7 @@ get_remove_node(struct tree_gds *tree, int value, struct tnodes *nodes)
 		} else if (root->left == NULL && root->right != NULL) {
 			tree->root = root->right;
 		} else {
-			struct tnode_gds *max_left = found_max_left_node(root, root->left);
+			struct gds_tnode *max_left = found_max_left_node(root, root->left);
 			max_left->right = root->right; /*save old references*/
 			max_left->left  = root->left;
 			tree->root      = max_left; /*remember node*/
@@ -204,8 +204,8 @@ get_remove_node(struct tree_gds *tree, int value, struct tnodes *nodes)
 }
 
 int
-found_remove_node(struct tnode_gds *prev,
-				struct tnode_gds *curr,
+found_remove_node(struct gds_tnode *prev,
+				struct gds_tnode *curr,
 				int value,
 				struct tnodes *nodes)
 {
@@ -222,19 +222,19 @@ found_remove_node(struct tnode_gds *prev,
 }
 
 void
-round_wide(struct tree_gds *tree)
+round_wide(struct gds_tree *tree)
 {
 	;
 }
 
 void
-round_bottom(struct tree_gds *tree)
+round_bottom(struct gds_tree *tree)
 {
 	tree_print(tree->root);
 }
 
 void
-tree_print(struct tnode_gds *node)
+tree_print(struct gds_tnode *node)
 {
 	if (node != NULL) {
 		tree_print(node->left);

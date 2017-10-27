@@ -1,13 +1,13 @@
 #include <string.h> 
 #include <assert.h> 
-#include "dynamic_array.h"
+#include "gds_darray.h"
 
 #define COUNT 32
 #define GET_CURRENT(buffer, current, size) \
 			(((char *) buffer) + (current * size))
 
 void
-darray_create(struct darray_gds *array, size_t size)
+darray_create(struct gds_darray *array, size_t size)
 {
 	assert(array != NULL);
 	assert(size > 0);
@@ -19,7 +19,7 @@ darray_create(struct darray_gds *array, size_t size)
 }
 
 void
-darray_delete(struct darray_gds *array)
+darray_delete(struct gds_darray *array)
 {
 	assert(array != NULL);
 	
@@ -27,7 +27,7 @@ darray_delete(struct darray_gds *array)
 }
 
 void
-darray_clear(struct darray_gds *array)
+darray_clear(struct gds_darray *array)
 {
 	assert(array != NULL);
 	
@@ -39,7 +39,7 @@ darray_clear(struct darray_gds *array)
 }
 
 void
-darray_add(struct darray_gds *array, void *value)
+darray_add(struct gds_darray *array, void *value)
 {
 	size_t count;
 	void  *buffer;
@@ -65,7 +65,7 @@ darray_add(struct darray_gds *array, void *value)
 }
 
 void
-darray_join(struct darray_gds *array, void *values, size_t count)
+darray_join(struct gds_darray *array, void *values, size_t count)
 {
 	void  *buffer;
 	size_t current, new_count;
@@ -91,7 +91,7 @@ darray_join(struct darray_gds *array, void *values, size_t count)
 }
 
 void *
-darray_get(struct darray_gds *array)
+darray_get(struct gds_darray *array)
 {
 	void *buffer;
 	

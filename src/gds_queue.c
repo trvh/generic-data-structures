@@ -1,6 +1,6 @@
 #include <string.h>
 #include <assert.h>
-#include "queue.h"
+#include "gds_queue.h"
 
 /* 2 ^ SHIFT = COUNT_ELEMENTS in buffer*/
 #define SHIFT	       13
@@ -15,18 +15,18 @@
 
 #define GET_REMAINDER(start, end, size) (( ((char *) end) - ((char *) start) ) / size)
 
-struct list_gds {
-	struct list_gds *next;	
+struct gds_list {
+	struct gds_list *next;	
 	void			*start; /*pointer to the beginning of the buffer*/
 	void			*end;   /*pointer on end of buffer*/
 };
 
-static struct list_gds *list_create(size_t size);
+static struct gds_list *list_create(size_t size);
 
 void
-queue_create(struct queue_gds *queue, size_t size)
+queue_create(struct gds_queue *queue, size_t size)
 {	
-	struct list_gds *list;
+	struct gds_list *list;
 
 	assert(queue != NULL);
 	assert(size > 0);
@@ -44,7 +44,7 @@ queue_create(struct queue_gds *queue, size_t size)
 }
 
 void
-queue_delete(struct queue_gds *queue)
+queue_delete(struct gds_queue *queue)
 {
 	assert(queue != NULL);
 	
@@ -56,9 +56,9 @@ queue_delete(struct queue_gds *queue)
 }
 
 void
-queue_clear(struct queue_gds *queue)
+queue_clear(struct gds_queue *queue)
 {
-	struct list_gds *list, *next;
+	struct gds_list *list, *next;
 
 	assert(queue != NULL);
 
@@ -77,9 +77,9 @@ queue_clear(struct queue_gds *queue)
 }
 
 size_t
-queue_count(struct queue_gds *queue)
+queue_count(struct gds_queue *queue)
 {
-	struct list_gds *next;
+	struct gds_list *next;
 	size_t count;
 
 	assert(queue != NULL);
@@ -95,13 +95,13 @@ queue_count(struct queue_gds *queue)
 	return count;
 }
 
-struct list_gds *
+struct gds_list *
 list_create(size_t size)
 {
-	struct list_gds *list;
+	struct gds_list *list;
 	void  *buffer;
 	
-	list = (struct list_gds *) malloc(sizeof(struct list_gds));
+	list = (struct gds_list *) malloc(sizeof(struct gds_list));
 	assert(list != NULL);
 	
 	/*size of buffer of data*/	
@@ -115,9 +115,9 @@ list_create(size_t size)
 }
 
 void
-queue_enqueue(struct queue_gds *queue, void *value)
+queue_enqueue(struct gds_queue *queue, void *value)
 {
-	struct list_gds *tail, *list;
+	struct gds_list *tail, *list;
 	void  *end;
 	size_t size;
 
@@ -147,9 +147,9 @@ queue_enqueue(struct queue_gds *queue, void *value)
 }
 
 void
-queue_dequeue(struct queue_gds *queue, void *value)
+queue_dequeue(struct gds_queue *queue, void *value)
 {
-	struct list_gds *head, *list;
+	struct gds_list *head, *list;
 	void  *start;
 	size_t size;
 
@@ -179,9 +179,9 @@ queue_dequeue(struct queue_gds *queue, void *value)
 }
 
 void
-queue_peek(struct queue_gds *queue, void *value)
+queue_peek(struct gds_queue *queue, void *value)
 {
-	struct list_gds *head, *list;
+	struct gds_list *head, *list;
 	void  *start;
 	size_t size;
 
@@ -210,7 +210,7 @@ queue_peek(struct queue_gds *queue, void *value)
 }
 
 int
-queue_is_empty(struct queue_gds *queue)
+queue_is_empty(struct gds_queue *queue)
 {
 	assert(queue != NULL);
 	

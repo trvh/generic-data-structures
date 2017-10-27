@@ -1,6 +1,6 @@
 #include <string.h>
 #include <assert.h>
-#include "stack.h"
+#include "gds_stack.h"
 
 /* 2 ^ SHIFT = COUNT_ELEMENTS in buffer*/
 #define SHIFT	       13
@@ -15,19 +15,19 @@
 #define COPY_IN_STACK(current, value, size)   memcpy(current, value, size);
 #define COPY_FROM_STACK(value, current, size) memcpy(value, current, size);
 
-struct list_gds {
-	struct list_gds *prev;	
+struct gds_list {
+	struct gds_list *prev;	
 	void			*start;   /*pointer to the beginning of the buffer*/
 	void			*current; /*pointer on free place in buffer*/
 	void			*end;	  /*pointer on end of buffer*/
 };
 
-static struct list_gds *list_create(size_t size);
+static struct gds_list *list_create(size_t size);
 
 void
-stack_create(struct stack_gds *stack, size_t size)
+stack_create(struct gds_stack *stack, size_t size)
 {	
-	struct list_gds *list;
+	struct gds_list *list;
 	
 	assert(stack != NULL);
 	assert(size > 0);
@@ -44,7 +44,7 @@ stack_create(struct stack_gds *stack, size_t size)
 }
 
 void
-stack_delete(struct stack_gds *stack)
+stack_delete(struct gds_stack *stack)
 {
 	assert(stack != NULL);
 	
@@ -55,9 +55,9 @@ stack_delete(struct stack_gds *stack)
 }
 
 void
-stack_clear(struct stack_gds *stack)
+stack_clear(struct gds_stack *stack)
 {
-	struct list_gds *list, *prev;
+	struct gds_list *list, *prev;
 
 	assert(stack != NULL);
 	
@@ -76,9 +76,9 @@ stack_clear(struct stack_gds *stack)
 }
 
 int
-stack_is_empty(struct stack_gds *stack)
+stack_is_empty(struct gds_stack *stack)
 {
-	struct list_gds *list;
+	struct gds_list *list;
 	
 	assert(stack != NULL);
 	
@@ -91,9 +91,9 @@ stack_is_empty(struct stack_gds *stack)
 }
 
 size_t
-stack_count(struct stack_gds *stack)
+stack_count(struct gds_stack *stack)
 {
-	struct list_gds *list, *prev;
+	struct gds_list *list, *prev;
 	size_t count;
 	
 	assert(stack != NULL);
@@ -108,13 +108,13 @@ stack_count(struct stack_gds *stack)
 	return count;
 }
 
-struct list_gds *
+struct gds_list *
 list_create(size_t size)
 {
-	struct list_gds *list;
+	struct gds_list *list;
 	void  *buffer;
 	
-	list = (struct list_gds *) malloc(sizeof(struct list_gds));
+	list = (struct gds_list *) malloc(sizeof(struct gds_list));
 	assert(list != NULL);
 	
 	/*buffer for data*/	
@@ -129,9 +129,9 @@ list_create(size_t size)
 }
 
 void
-stack_push(struct stack_gds *stack, void *value)
+stack_push(struct gds_stack *stack, void *value)
 {
-	struct list_gds *list, *list_new;
+	struct gds_list *list, *list_new;
 	void  *current;
 	size_t size;
 
@@ -168,9 +168,9 @@ stack_push(struct stack_gds *stack, void *value)
 }
 
 void
-stack_pop(struct stack_gds *stack, void *value)
+stack_pop(struct gds_stack *stack, void *value)
 {
-	struct list_gds *list;
+	struct gds_list *list;
 	void  *current;
 	size_t size;
 	
@@ -207,9 +207,9 @@ stack_pop(struct stack_gds *stack, void *value)
 }
 
 void
-stack_pop2(struct stack_gds* stack)
+stack_pop2(struct gds_stack *stack)
 {
-	struct list_gds *list;
+	struct gds_list *list;
 	void  *current;
 	size_t size;
 	
@@ -238,9 +238,9 @@ stack_pop2(struct stack_gds* stack)
 
 
 void
-stack_peek(struct stack_gds* stack, void *value)
+stack_peek(struct gds_stack *stack, void *value)
 {
-	struct list_gds *list;
+	struct gds_list *list;
 	void  *current;
 	size_t size;
 	
