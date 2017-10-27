@@ -92,7 +92,7 @@ slist_insert(struct gds_slist *list, void *data, size_t index)
 void
 slist_append(struct gds_slist *list, void *data)
 {
-	struct gds_node *node, *head;
+	struct gds_node *node, *tail;
 	void  *buffer;
 	size_t size;
 	
@@ -111,12 +111,14 @@ slist_append(struct gds_slist *list, void *data)
 	node->data = buffer;
 	node->next = NULL;
 	
-	head = list->head;
-	if (head == NULL) {		
+	tail = list->tail;
+	if (tail == NULL) {		
+		/*it is first node*/
 		list->head = list->tail = node;
 	} else {
-		head->next = node;
-		list->head = node;
+		/*add in end*/
+		tail->next = node;
+		list->tail = node;
 	}
 	list->count++;
 }
@@ -124,7 +126,7 @@ slist_append(struct gds_slist *list, void *data)
 void
 slist_remove(struct gds_slist *list, void *data, int option)
 {
-	struct gds_node *prev, *node, *next;
+	struct gds_node *node, *prev, *next;
 	int (*cmp)(void *data, void *pattern); 
 	
 	assert(list != NULL);
@@ -137,18 +139,29 @@ slist_remove(struct gds_slist *list, void *data, int option)
 			free(node->data);
 			free(node);
 			list->count--;
-
-			if (node == list->head)
+			
+			/*removing a reference with the remote node*/
+			if (node == list->head) { /*it is first node?*/
 				list->head = next;
-			else
-				prev->next = next;
+				if (node == list->tail) { /*list was had one node?*/
+					list->tail = next;
+					break; /*exit*/
+				}
 
+			} else if (node == list->tail) { /*it is last node?*/
+				prev->next = NULL;
+				list->tail = prev;
+				break; /*exit*/
+
+			} else /*it is middle node*/
+				prev->next = next;
+			
 			if (option == ALL_NODES)
 				continue;
 			else
-				break;
+				break; /*exit*/
 		}
-		prev = node;
+		prev = node; /*remember previous node*/
 	}
 }
 
