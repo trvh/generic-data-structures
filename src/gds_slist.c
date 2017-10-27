@@ -124,18 +124,18 @@ slist_append(struct gds_slist *list, void *data)
 }
 
 void
-slist_remove(struct gds_slist *list, void *data, int option)
+slist_remove(struct gds_slist *list, void *pattern, int option)
 {
 	struct gds_node *node, *prev, *next;
 	int (*cmp)(void *data, void *pattern); 
 	
 	assert(list != NULL);
-	assert(data != NULL);
+	assert(pattern != NULL);
 	
 	cmp = list->cmp;
 	for (node = list->head; node != NULL; node = next) {
 		next = node->next;
-		if ((*cmp)(node->data, data) == 0) {
+		if ((*cmp)(node->data, pattern) == 0) {
 			free(node->data);
 			free(node);
 			list->count--;
@@ -166,18 +166,18 @@ slist_remove(struct gds_slist *list, void *data, int option)
 }
 
 void *
-slist_search(struct gds_slist *list, void *data)
+slist_search(struct gds_slist *list, void *pattern)
 {
 	struct gds_node *node, *next;
 	int (*cmp)(void *data, void *pattern); 
 	
-	assert(list != NULL);
-	assert(data != NULL);
+	assert(list    != NULL);
+	assert(pattern != NULL);
 	
 	cmp = list->cmp;
 	for (node = list->head; node != NULL; node = next) {
 		next = node->next;
-		if ((*cmp)(node->data, data) == 0)
+		if ((*cmp)(node->data, pattern) == 0)
 			break;
 	}
 	return (node != NULL) ? node->data : NULL;
