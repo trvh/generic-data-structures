@@ -11,7 +11,7 @@
 
 #define GET_END(buffer, size) (((char *) (buffer)) + ((size) << SHIFT))
 
-#define COPY(dst, src, size) memcpy((dst), (src), (size));
+#define COPY(dst, src, size) memcpy((dst), (src), (size))
 
 #define GET_REMAINDER(start, end, size) ((((char *) (end)) - ((char *) (start))) / (size))
 
@@ -129,7 +129,7 @@ queue_enqueue(struct gds_queue *queue, void *value)
 	tail = queue->tail;
 
 	if (end < tail->end) {
-		COPY(end, value, size)
+		COPY(end, value, size);
 		queue->end = TO_NEXT(end, size);
 	} else {
 		/*queue is full, add new list*/
@@ -140,7 +140,7 @@ queue_enqueue(struct gds_queue *queue, void *value)
 
 		queue->tail = list;
 		
-		COPY(list->start, value, size)	
+		COPY(list->start, value, size);
 		queue->end = TO_NEXT(list->start, size);
 	}
 }
@@ -160,7 +160,7 @@ queue_dequeue(struct gds_queue *queue, void *value)
 	head  = queue->head;
 
 	if (start < head->end) {
-		COPY(value, start, size)
+		COPY(value, start, size);
 		queue->start = TO_NEXT(start, size);
 	} else {
 		/*queue is end, remove list*/
@@ -171,7 +171,7 @@ queue_dequeue(struct gds_queue *queue, void *value)
 		/*remember reference on next list*/
 		queue->head = list;
 
-		COPY(value, list->start, size)	
+		COPY(value, list->start, size);
 		queue->start = TO_NEXT(list->start, size);
 	}
 }
@@ -191,7 +191,7 @@ queue_peek(struct gds_queue *queue, void *value)
 	head  = queue->head;
 
 	if (start < head->end) {
-		COPY(value, start, size)
+		COPY(value, start, size);
 	} else {
 		/*queue is end, remove list*/
 		list = head->next;
@@ -201,7 +201,7 @@ queue_peek(struct gds_queue *queue, void *value)
 		/*remember reference on next list*/
 		queue->head = list;
 
-		COPY(value, list->start, size)
+		COPY(value, list->start, size);
 		
 		queue->start = list->start;
 	}
