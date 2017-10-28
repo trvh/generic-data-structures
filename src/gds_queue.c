@@ -6,14 +6,14 @@
 #define SHIFT	       13
 #define COUNT_ELEMENTS 8192
 
-#define TO_NEXT(buffer, size) (((char *) buffer) + size)
-#define TO_PREV(buffer, size) (((char *) buffer) - size)
+#define TO_NEXT(buffer, size) (((char *) (buffer)) + (size))
+#define TO_PREV(buffer, size) (((char *) (buffer)) - (size))
 
-#define GET_END(buffer, size) (((char *) buffer) + (size << SHIFT))
+#define GET_END(buffer, size) (((char *) (buffer)) + ((size) << SHIFT))
 
-#define COPY(target, source, size) memcpy(target, source, size);
+#define COPY(dst, src, size) memcpy((dst), (src), (size));
 
-#define GET_REMAINDER(start, end, size) (( ((char *) end) - ((char *) start) ) / size)
+#define GET_REMAINDER(start, end, size) ((((char *) (end)) - ((char *) (start))) / (size))
 
 struct gds_list {
 	struct gds_list *next;	
@@ -48,9 +48,7 @@ queue_delete(struct gds_queue *queue)
 {
 	assert(queue != NULL);
 	
-	/*delete all lists of queue*/
-	queue_clear(queue);
-	
+	queue_clear(queue);	
 	free(queue->head->start);
 	free(queue->head);
 }
@@ -79,18 +77,20 @@ queue_clear(struct gds_queue *queue)
 size_t
 queue_count(struct gds_queue *queue)
 {
-	struct gds_list *next;
+	struct gds_list *next, *head, *tail;
 	size_t count;
 
 	assert(queue != NULL);
 	
-	if (queue->head == queue->tail) {
+	tail = queue->tail;
+	head = queue->head;
+	if (head == tail)
 		count = GET_REMAINDER(queue->start, queue->end, queue->size);
-	} else {
-		count = GET_REMAINDER(queue->start, queue->head->end, queue->size);
-		for (next = queue->head->next; next != queue->tail; next = next->next)
+	else {
+		count = GET_REMAINDER(queue->start, head->end, queue->size);
+		for (next = head->next; next != tail; next = next->next)
 			count += COUNT_ELEMENTS;
-		count += GET_REMAINDER(queue->tail->start, queue->end, queue->size);
+		count += GET_REMAINDER(tail->start, queue->end, queue->size);
 	}
 	return count;
 }
@@ -140,8 +140,7 @@ queue_enqueue(struct gds_queue *queue, void *value)
 
 		queue->tail = list;
 		
-		COPY(list->start, value, size)
-		
+		COPY(list->start, value, size)	
 		queue->end = TO_NEXT(list->start, size);
 	}
 }
@@ -172,8 +171,7 @@ queue_dequeue(struct gds_queue *queue, void *value)
 		/*remember reference on next list*/
 		queue->head = list;
 
-		COPY(value, list->start, size)
-		
+		COPY(value, list->start, size)	
 		queue->start = TO_NEXT(list->start, size);
 	}
 }

@@ -48,7 +48,6 @@ stack_delete(struct gds_stack *stack)
 {
 	assert(stack != NULL);
 	
-	/*delete all lists of stack*/
 	stack_clear(stack);
 	free(stack->list->start);
 	free(stack->list);
@@ -64,7 +63,6 @@ stack_clear(struct gds_stack *stack)
 	/*delete all lists before first*/
 	list = stack->list->prev;
 	while (list != NULL) {
-		/*remember previous list*/
 		prev = list->prev;
 		free(list->start);
 		free(list);
@@ -142,10 +140,8 @@ stack_push(struct gds_stack *stack, void *value)
 	list = stack->list;
 	current = list->current;
 
-	if (current < list->end) {
-		
+	if (current < list->end) {		
 		COPY_IN_STACK(current, value, size)
-		
 		/*shift top of stack*/
 		current = TO_NEXT(current, size);
 		/*remember current position of top of stack*/
@@ -155,11 +151,9 @@ stack_push(struct gds_stack *stack, void *value)
 		list_new = list_create(size);
 		/*remember reference on old list*/
 		list_new->prev = list;
-		
 		current = list_new->current;	
 		
-		COPY_IN_STACK(current, value, size)
-		
+		COPY_IN_STACK(current, value, size)	
 		current = TO_NEXT(current, size);
 		list_new->current = current;
 		/*remember new list in stack*/
