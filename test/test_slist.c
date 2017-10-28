@@ -24,18 +24,16 @@ test1()
 	slist_append(&l1, &i);
 	i = 3;
 	slist_append(&l1, &i);
-	i = 1;
-	slist_insert(&l1, &i, 2);
+	i = 777;
+	slist_insert(&l1, &i, 3);
 
 	i = 1;
 	res = slist_search(&l1, &i);
-	printf("%d\n", *res);
 	
 	i = 3;
 	res = slist_search(&l1, &i);
-	printf("%d\n", *res);
 	
-	res = slist_index(&l1, 1);
+	res = slist_index(&l1, 3);
 	
 	i = 1;
 	slist_remove(&l1, &i, ALL_NODES);

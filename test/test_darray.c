@@ -23,15 +23,17 @@ test1()
 	i = 777;
 	darray_insert(&arr, &i, 5);
 
-	for (j = 6, res = (int *) arr.buffer; j != 0; res++, j--)
+	for (j = arr.current, res = (int *) arr.buffer; j != 0; res++, j--)
 		printf("%d\n", *res);
 	printf("-----\n");
 	
 	darray_remove(&arr, 3);
 	
-	for (j = 6, res = (int *) arr.buffer; j != 0; res++, j--)
+	for (j = arr.current, res = (int *) arr.buffer; j != 0; res++, j--)
 		printf("%d\n", *res);
 
+	darray_remove(&arr, 0);
+	darray_remove(&arr, 3);
 	darray_delete(&arr);
 }
 

@@ -182,9 +182,15 @@ slist_index(struct gds_slist *list, size_t index)
 	assert(list != NULL);
 	assert(list->count > 0);
 	assert(list->count - 1 >= index);
-
+	
+	if (list->count - 1 == index) {
+		node = list->tail;
+		goto END;
+	}
+	
 	for (node = list->head; index != 0; node = node->next, index--)
 		{}
+END:
 	return node->data;
 }
 

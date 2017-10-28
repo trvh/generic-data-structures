@@ -49,22 +49,20 @@ darray_remove(struct gds_darray *array, size_t index)
 	assert(array->current > 0);
 	assert(array->current - 1 >= index);
 	
-	if (array->current - 1 == index)
-		array->current--;
-	else {
+	if (array->current - 1 != index) {
 		dest  = GET_CURRENT(array->buffer, index, array->size);
 		sorc  = GET_CURRENT(array->buffer, index + 1, array->size);
 		bytes = (array->current - index - 1) * array->size;
 		memmove(dest, sorc, bytes);
-		array->current -= index - 1;
 	}
+	array->current--;
 }
 
 void
 darray_add(struct gds_darray *array, void *value)
 {
 	size_t count;
-	void  *buffer;
+	void  *buffer, *dest;
 	
 	assert(array != NULL);
 	assert(value != NULL);
@@ -79,29 +77,28 @@ darray_add(struct gds_darray *array, void *value)
 		/*remember new buffer*/
 		array->buffer = buffer;
 		array->count  = count;	
-	}
-	
-	memcpy(GET_CURRENT(array->buffer, array->current, array->size),
-		   value,
-		   array->size);
+	}	
+	dest = GET_CURRENT(array->buffer, array->current, array->size);
+	memcpy(dest, value, array->size);
 	array->current++;
 }
 
 void
 darray_join(struct gds_darray *array, void *values, size_t count)
 {
-	void  *buffer;
+	void  *buffer, *dest;
 	size_t current, new_count;
-	size_t rest = array->count - array->current;
+	size_t rest;
 	
 	assert(array  != NULL);
 	assert(values != NULL);
 	assert(count  > 0);
 	
+	rest = array->count - array->current;
 	if (rest < count) {
 		/*increase buffer*/
-		new_count  = (count - rest) + array->count;
-		buffer     = realloc(array->buffer, array->size * new_count);
+		new_count = (count - rest) + array->count;
+		buffer    = realloc(array->buffer, array->size * new_count);
 		
 		assert(buffer != NULL);
 		
@@ -111,9 +108,8 @@ darray_join(struct gds_darray *array, void *values, size_t count)
 	} else
 		current = array->current + count;
 	
-	memcpy(GET_CURRENT(array->buffer, array->current, array->size),
-		   values,
-		   array->size * count);
+	dest = GET_CURRENT(array->buffer, array->current, array->size);
+	memcpy(dest, values, array->size * count);
 	array->current = current;
 }
 
@@ -140,6 +136,7 @@ darray_insert(struct gds_darray *array, void *value, size_t index)
 	}
 	
 	if (array->current != index) {
+		/*to shift elements in right*/
 		dest  = GET_CURRENT(array->buffer, index + 1, array->size);
 		sorc  = GET_CURRENT(array->buffer, index, array->size);
 		bytes = (array->current - index) * array->size;
