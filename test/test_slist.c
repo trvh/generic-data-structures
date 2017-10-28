@@ -75,10 +75,33 @@ test2()
 	slist_delete(&l1);
 }
 
+void
+test3()
+{
+	struct gds_slist l1;
+	int i;
+	int data;
+
+	slist_create(&l1, sizeof(int), cmp);
+
+	i = 1;
+	slist_insert(&l1, &i, 0);
+	
+	i = 2;
+	slist_append(&l1, &i);
+	i = 3;
+	slist_append(&l1, &i);
+
+	slist_getdata(&l1, &data, 2);
+	
+	slist_delete(&l1);
+}
 int
 main()
 {
+	test1();	
 	test2();	
+	test3();	
 	return 0;
 }
 

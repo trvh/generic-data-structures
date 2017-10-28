@@ -8,6 +8,11 @@ enum {
 	ANY_NODE,
 };
 
+struct gds_node {
+	struct gds_node *next;
+	void			*data;
+};
+
 struct gds_slist {
 	struct gds_node *head;
 	struct gds_node *tail;
@@ -27,4 +32,6 @@ void slist_remove(struct gds_slist *list, void *pattern, int option);
 
 void *slist_search(struct gds_slist *list, void *pattern);
 void *slist_index(struct gds_slist *list, size_t index);
+
+void slist_getdata(struct gds_slist *list, void *data, size_t index);
 #endif

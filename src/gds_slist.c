@@ -3,11 +3,6 @@
 
 #include "gds_slist.h"
 
-struct gds_node {
-	struct gds_node *next;
-	void			*data;
-};
-
 void
 slist_create(struct gds_slist *list, size_t size,
 			 int (*cmp)(void *data, void *pattern))
@@ -131,6 +126,7 @@ slist_remove(struct gds_slist *list, void *pattern, int option)
 	
 	assert(list != NULL);
 	assert(pattern != NULL);
+	assert(list->cmp != NULL);
 	
 	cmp = list->cmp;
 	for (node = list->head; node != NULL; node = next) {
@@ -139,7 +135,6 @@ slist_remove(struct gds_slist *list, void *pattern, int option)
 			free(node->data);
 			free(node);
 			list->count--;
-			
 			/*removing a reference with the remote node*/
 			if (node == list->head) { /*it is first node?*/
 				list->head = next;
@@ -147,15 +142,12 @@ slist_remove(struct gds_slist *list, void *pattern, int option)
 					list->tail = next;
 					break; /*exit*/
 				}
-
 			} else if (node == list->tail) { /*it is last node?*/
 				prev->next = NULL;
 				list->tail = prev;
 				break; /*exit*/
-
 			} else /*it is middle node*/
 				prev->next = next;
-			
 			if (option == ALL_NODES)
 				continue;
 			else
@@ -168,18 +160,17 @@ slist_remove(struct gds_slist *list, void *pattern, int option)
 void *
 slist_search(struct gds_slist *list, void *pattern)
 {
-	struct gds_node *node, *next;
+	struct gds_node *node;
 	int (*cmp)(void *data, void *pattern); 
 	
-	assert(list    != NULL);
+	assert(list != NULL);
 	assert(pattern != NULL);
+	assert(list->cmp != NULL);
 	
 	cmp = list->cmp;
-	for (node = list->head; node != NULL; node = next) {
-		next = node->next;
+	for (node = list->head; node != NULL; node = node->next)
 		if ((*cmp)(node->data, pattern) == 0)
 			break;
-	}
 	return (node != NULL) ? node->data : NULL;
 }
 
@@ -195,4 +186,35 @@ slist_index(struct gds_slist *list, size_t index)
 	for (node = list->head; index != 0; node = node->next, index--)
 		{}
 	return node->data;
+}
+
+void 
+slist_getdata(struct gds_slist *list, void *data, size_t index)
+{
+	struct gds_node *node, *head, *prev;
+		
+	assert(list != NULL);
+	assert(data != NULL);
+	assert(list->count > 0);
+	assert(list->count - 1 >= index);
+	
+	if (index == 0) {
+		head = list->head;
+		if (head == list->tail) /*list was had one node?*/
+			list->head = list->tail = NULL;
+		else	
+			list->head = head->next;
+		node = head;
+	} else {
+		/*find previous node*/
+		for (prev = list->head; index != 1; prev = prev->next, index--)
+			{}
+		/*forget reference*/
+		node = prev->next;
+		prev->next = node->next;
+	}
+	memcpy(data, node->data, list->size);
+	free(node->data);
+	free(node);
+	list->count--;
 }
