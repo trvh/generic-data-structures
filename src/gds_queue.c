@@ -9,12 +9,6 @@
 #define TO_NEXT(buffer, size) (((char *) (buffer)) + (size))
 #define TO_PREV(buffer, size) (((char *) (buffer)) - (size))
 
-#define GET_END(buffer, size) (((char *) (buffer)) + ((size) << SHIFT))
-
-#define COPY(dst, src, size) memcpy((dst), (src), (size))
-
-#define GET_REMAINDER(start, end, size) ((((char *) (end)) - ((char *) (start))) / (size))
-
 struct gds_list {
 	struct gds_list *next;	
 	void			*start; /*pointer to the beginning of the buffer*/
@@ -31,26 +25,31 @@ queue_create(struct gds_queue *queue, size_t size)
 	assert(queue != NULL);
 	assert(size > 0);
 	
-	/*setup actual size of elements*/
-	queue->size = size;
 
 	/*queue is empty, create new list*/
 	list = list_create(size);
-	list->next = NULL;
 	
 	/*remember new list in queue*/
-	queue->head = queue->tail = list;
+	queue->head  = queue->tail = list;
 	queue->start = queue->end = list->start;
+	queue->size  = size;
+	queue->count = 0;
 }
 
 void
 queue_delete(struct gds_queue *queue)
 {
+	struct gds_list *list, *next;
+	
 	assert(queue != NULL);
 	
-	queue_clear(queue);	
-	free(queue->head->start);
-	free(queue->head);
+	list = queue->head;
+	while (list != NULL) {
+		next = list->next;
+		free(list->start);
+		free(list);
+		list = next;
+	}
 }
 
 void
@@ -72,27 +71,7 @@ queue_clear(struct gds_queue *queue)
 	queue->tail = queue->head;
 	queue->end  = queue->start;
 	queue->head->next = NULL;
-}
-
-size_t
-queue_count(struct gds_queue *queue)
-{
-	struct gds_list *next, *head, *tail;
-	size_t count;
-
-	assert(queue != NULL);
-	
-	tail = queue->tail;
-	head = queue->head;
-	if (head == tail)
-		count = GET_REMAINDER(queue->start, queue->end, queue->size);
-	else {
-		count = GET_REMAINDER(queue->start, head->end, queue->size);
-		for (next = head->next; next != tail; next = next->next)
-			count += COUNT_ELEMENTS;
-		count += GET_REMAINDER(tail->start, queue->end, queue->size);
-	}
-	return count;
+	queue->count = 0;
 }
 
 struct gds_list *
@@ -104,116 +83,92 @@ list_create(size_t size)
 	list = (struct gds_list *) malloc(sizeof(struct gds_list));
 	assert(list != NULL);
 	
-	/*size of buffer of data*/	
-	buffer = malloc(size << SHIFT);
+	size = size << SHIFT;
+	buffer = malloc(size);
 	assert(buffer != NULL);
 	
 	list->start = buffer;
-	list->end   = GET_END(buffer, size); 
+	list->end   = TO_NEXT(buffer, size); 
+	list->next  = NULL;
 
 	return list;
 }
 
 void
-queue_enqueue(struct gds_queue *queue, void *value)
+queue_enqueue(struct gds_queue *queue, void *src)
 {
 	struct gds_list *tail, *list;
-	void  *end;
+	void  *dst;
 	size_t size;
 
 	assert(queue != NULL);
-	assert(value != NULL);
+	assert(src != NULL);
 	
-	end  = queue->end;
 	size = queue->size;
 	tail = queue->tail;
-
-	if (end < tail->end) {
-		COPY(end, value, size);
-		queue->end = TO_NEXT(end, size);
-	} else {
+	dst  = queue->end;
+	
+	if (dst == tail->end) {
 		/*queue is full, add new list*/
-		list = list_create(size);
-		
-		/*remember reference on old list*/
-		tail->next = list;
-
+		list = list_create(size);	
+		tail->next  = list;
 		queue->tail = list;
-		
-		COPY(list->start, value, size);
-		queue->end = TO_NEXT(list->start, size);
+		dst = list->start;
 	}
+	memcpy(dst, src, size);
+	queue->end = TO_NEXT(dst, size);
+	queue->count++;
 }
 
 void
-queue_dequeue(struct gds_queue *queue, void *value)
+queue_dequeue(struct gds_queue *queue, void *dst)
 {
 	struct gds_list *head, *list;
-	void  *start;
+	void  *src;
 	size_t size;
 
 	assert(queue != NULL);
-	assert(value != NULL);
+	assert(dst != NULL);
 	
-	start = queue->start;
-	size  = queue->size;
-	head  = queue->head;
+	size = queue->size;
+	head = queue->head;
+	src  = queue->start;
 
-	if (start < head->end) {
-		COPY(value, start, size);
-		queue->start = TO_NEXT(start, size);
-	} else {
-		/*queue is end, remove list*/
+	if (src == head->end) {
+		/*head is end, remove list*/
 		list = head->next;
 		free(head->start);
 		free(head);
-
-		/*remember reference on next list*/
 		queue->head = list;
-
-		COPY(value, list->start, size);
-		queue->start = TO_NEXT(list->start, size);
+		src = list->start;
 	}
+	memcpy(dst, src, size);
+	queue->start = TO_NEXT(src, size);
+	queue->count--;
 }
 
 void
-queue_peek(struct gds_queue *queue, void *value)
+queue_peek(struct gds_queue *queue, void *dst)
 {
 	struct gds_list *head, *list;
-	void  *start;
+	void  *src;
 	size_t size;
 
 	assert(queue != NULL);
-	assert(value != NULL);
+	assert(dst != NULL);
 	
-	start = queue->start;
-	size  = queue->size;
-	head  = queue->head;
+	size = queue->size;
+	head = queue->head;
+	src  = queue->start;
 
-	if (start < head->end) {
-		COPY(value, start, size);
-	} else {
-		/*queue is end, remove list*/
+	if (src == head->end) {
+		/*head is end, remove list*/
 		list = head->next;
 		free(head->start);
 		free(head);
-
-		/*remember reference on next list*/
 		queue->head = list;
-
-		COPY(value, list->start, size);
-		
-		queue->start = list->start;
+		src = list->start;
 	}
-}
-
-int
-queue_is_empty(struct gds_queue *queue)
-{
-	assert(queue != NULL);
-	
-	if (queue->head == queue->tail)
-		if(queue->start == queue->end)
-			return IS_EMPTY;
-	return IS_FILLED;
+	memcpy(dst, src, size);
+	queue->start = src;
 }
