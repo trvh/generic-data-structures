@@ -80,12 +80,12 @@ list_create(size_t size)
 	list = (struct gds_list *) malloc(sizeof(struct gds_list));
 	assert(list != NULL);
 	
-	buffer = malloc(size << SHIFT);
+	size   = size << SHIFT;
+	buffer = malloc(size);
 	assert(buffer != NULL);
 	
 	list->start = list->current = buffer;
-	size = size << SHIFT;
-	list->end = TO_NEXT(buffer, size);
+	list->end   = TO_NEXT(buffer, size);
 	return list;
 }
 
@@ -108,7 +108,8 @@ stack_push(struct gds_stack *stack, void *src)
 		list_new = list_create(size);
 		stack->list = list_new;
 		list_new->prev = list;
-		dst = list_new->current;	
+		list = list_new;
+		dst  = list_new->current;	
 	}
 	memcpy(dst, src, size);
 	list->current = TO_NEXT(dst, size);
