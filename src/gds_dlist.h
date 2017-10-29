@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 /*offset from header of node, here start of buffer for data*/
-#define DATA_NODE(node) \
+#define DATA_DNODE(node) \
 	((void *) (((char *) (node)) + (sizeof(struct gds_dnode))))
 
 struct gds_dnode {
