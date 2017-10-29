@@ -32,20 +32,20 @@ slist_delete(struct gds_slist *list)
 }
 
 void
-slist_insert(struct gds_slist *list, void *data, size_t index)
+slist_insert(struct gds_slist *list, void *src, size_t index)
 {
 	struct gds_node *node, *head, *tail, *prev;
 	void  *buffer;
 	size_t size, count;
 	
 	assert(list != NULL);
-	assert(data != NULL);
+	assert(src != NULL);
 	
 	size   = list->size;	
 	buffer = malloc(size);		
 	assert(buffer != NULL);
 	
-	memcpy(buffer, data, size);
+	memcpy(buffer, src, size);
 	
 	node = (struct gds_node *) malloc(sizeof(struct gds_node));
 	assert(node != NULL);
@@ -85,20 +85,20 @@ slist_insert(struct gds_slist *list, void *data, size_t index)
 }
 
 void
-slist_append(struct gds_slist *list, void *data)
+slist_append(struct gds_slist *list, void *src)
 {
 	struct gds_node *node, *tail;
 	void  *buffer;
 	size_t size;
 	
 	assert(list != NULL);
-	assert(data != NULL);
+	assert(src != NULL);
 	
 	size   = list->size;	
 	buffer = malloc(size);		
 	assert(buffer != NULL);
 	
-	memcpy(buffer, data, size);
+	memcpy(buffer, src, size);
 	
 	node = (struct gds_node *) malloc(sizeof(struct gds_node));
 	assert(node != NULL);
@@ -195,12 +195,12 @@ END:
 }
 
 void 
-slist_getdata(struct gds_slist *list, void *data, size_t index)
+slist_getdata(struct gds_slist *list, void *dst, size_t index)
 {
 	struct gds_node *node, *head, *prev;
 		
 	assert(list != NULL);
-	assert(data != NULL);
+	assert(dst != NULL);
 	assert(list->count > 0);
 	assert(list->count - 1 >= index);
 	
@@ -219,7 +219,7 @@ slist_getdata(struct gds_slist *list, void *data, size_t index)
 		node = prev->next;
 		prev->next = node->next;
 	}
-	memcpy(data, node->data, list->size);
+	memcpy(dst, node->data, list->size);
 	free(node->data);
 	free(node);
 	list->count--;

@@ -2,7 +2,6 @@
 #define QUEUE_UNIDIRECTIONAL_LIST
 
 #include <stdlib.h>
-#include "gds_consts.h"
 
 struct gds_queue {
 	struct gds_list *head;  /*stores the first list*/

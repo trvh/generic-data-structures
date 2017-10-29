@@ -16,9 +16,9 @@ void darray_delete(struct gds_darray *array);
 void darray_clear(struct gds_darray *array);
 void darray_remove(struct gds_darray *array, size_t index);
 
-void darray_add(struct gds_darray *array, void *value);
-void darray_join(struct gds_darray *array, void *values, size_t count);
-void darray_insert(struct gds_darray *array, void *value, size_t index);
+void darray_add(struct gds_darray *array, void *src);
+void darray_join(struct gds_darray *array, void *src, size_t count);
+void darray_insert(struct gds_darray *array, void *src, size_t index);
 
-void *darray_get(struct gds_darray *array);
+void *darray_getdata(struct gds_darray *array);
 #endif

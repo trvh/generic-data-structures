@@ -2,7 +2,6 @@
 #define STACK_SINGLE_LIST_HEADER
 
 #include <stdlib.h>
-#include "gds_consts.h"
 
 struct gds_stack {
 	struct gds_list *list;

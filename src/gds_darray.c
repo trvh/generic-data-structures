@@ -42,7 +42,7 @@ darray_clear(struct gds_darray *array)
 void
 darray_remove(struct gds_darray *array, size_t index)
 {
-	void *dest, *sorc;
+	void *dst, *src;
 	size_t bytes;
 
 	assert(array != NULL);
@@ -50,22 +50,23 @@ darray_remove(struct gds_darray *array, size_t index)
 	assert(array->current - 1 >= index);
 	
 	if (array->current - 1 != index) {
-		dest  = GET_CURRENT(array->buffer, index, array->size);
-		sorc  = GET_CURRENT(array->buffer, index + 1, array->size);
+		/*to shift elements in left*/
+		dst   = GET_CURRENT(array->buffer, index, array->size);
+		src   = GET_CURRENT(array->buffer, index + 1, array->size);
 		bytes = (array->current - index - 1) * array->size;
-		memmove(dest, sorc, bytes);
+		memmove(dst, src, bytes);
 	}
 	array->current--;
 }
 
 void
-darray_add(struct gds_darray *array, void *value)
+darray_add(struct gds_darray *array, void *src)
 {
 	size_t count;
-	void  *buffer, *dest;
+	void  *buffer, *dst;
 	
 	assert(array != NULL);
-	assert(value != NULL);
+	assert(src != NULL);
 	
 	if (array->current == array->count) {
 		/*increase buffer*/
@@ -78,20 +79,20 @@ darray_add(struct gds_darray *array, void *value)
 		array->buffer = buffer;
 		array->count  = count;	
 	}	
-	dest = GET_CURRENT(array->buffer, array->current, array->size);
-	memcpy(dest, value, array->size);
+	dst = GET_CURRENT(array->buffer, array->current, array->size);
+	memcpy(dst, src, array->size);
 	array->current++;
 }
 
 void
-darray_join(struct gds_darray *array, void *values, size_t count)
+darray_join(struct gds_darray *array, void *src, size_t count)
 {
-	void  *buffer, *dest;
+	void  *buffer, *dst;
 	size_t current, new_count;
 	size_t rest;
 	
 	assert(array  != NULL);
-	assert(values != NULL);
+	assert(src != NULL);
 	assert(count  > 0);
 	
 	rest = array->count - array->current;
@@ -108,23 +109,25 @@ darray_join(struct gds_darray *array, void *values, size_t count)
 	} else
 		current = array->current + count;
 	
-	dest = GET_CURRENT(array->buffer, array->current, array->size);
-	memcpy(dest, values, array->size * count);
+	dst = GET_CURRENT(array->buffer, array->current, array->size);
+	memcpy(dst, src, array->size * count);
 	array->current = current;
 }
 
 void
-darray_insert(struct gds_darray *array, void *value, size_t index)
+darray_insert(struct gds_darray *array, void *src, size_t index)
 {
-	size_t count, bytes;
-	void  *buffer, *dest, *sorc;
+	void *dst;
 	
 	assert(array != NULL);
-	assert(value != NULL);
+	assert(src != NULL);
 	assert(array->current >= index);
 	
 	if (array->current == array->count) {
 		/*increase buffer*/
+		void  *buffer;
+		size_t count;
+
 		count  = array->count + COUNT;
 		buffer = realloc(array->buffer, count * array->size);
 		
@@ -137,18 +140,21 @@ darray_insert(struct gds_darray *array, void *value, size_t index)
 	
 	if (array->current != index) {
 		/*to shift elements in right*/
-		dest  = GET_CURRENT(array->buffer, index + 1, array->size);
-		sorc  = GET_CURRENT(array->buffer, index, array->size);
+		void  *src2;
+		size_t bytes;
+		
+		dst   = GET_CURRENT(array->buffer, index + 1, array->size);
+		src2  = GET_CURRENT(array->buffer, index, array->size);
 		bytes = (array->current - index) * array->size;
-		memmove(dest, sorc, bytes);
+		memmove(dst, src2, bytes);
 	}
-	dest = GET_CURRENT(array->buffer, index, array->size);
-	memcpy(dest, value, array->size);
+	dst = GET_CURRENT(array->buffer, index, array->size);
+	memcpy(dst, src, array->size);
 	array->current++;
 }
 
 void *
-darray_get(struct gds_darray *array)
+darray_getdata(struct gds_darray *array)
 {
 	void *buffer;
 	
