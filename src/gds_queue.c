@@ -1,13 +1,12 @@
 #include <string.h>
 #include <assert.h>
+
 #include "gds_queue.h"
+#include "gds_common.h"
 
 /* 2 ^ SHIFT = COUNT_ELEMENTS in buffer*/
 #define SHIFT	       13
 #define COUNT_ELEMENTS 8192
-
-#define TO_NEXT(buffer, size) (((char *) (buffer)) + (size))
-#define TO_PREV(buffer, size) (((char *) (buffer)) - (size))
 
 struct gds_list {
 	struct gds_list *next;	
@@ -24,7 +23,6 @@ queue_create(struct gds_queue *queue, size_t size)
 
 	assert(queue != NULL);
 	assert(size > 0);
-	
 
 	/*queue is empty, create new list*/
 	list = list_create(size);
@@ -46,7 +44,6 @@ queue_delete(struct gds_queue *queue)
 	list = queue->head;
 	while (list != NULL) {
 		next = list->next;
-		free(list->start);
 		free(list);
 		list = next;
 	}
@@ -63,7 +60,6 @@ queue_clear(struct gds_queue *queue)
 	list = queue->head->next;
 	while (list != NULL) {
 		next = list->next;
-		free(list->start);
 		free(list);
 		list = next;
 	}
@@ -79,16 +75,18 @@ list_create(size_t size)
 {
 	struct gds_list *list;
 	void  *buffer;
+	size_t bsize;
 	
-	list = (struct gds_list *) malloc(sizeof(struct gds_list));
+	assert(size > 0);
+	
+	bsize = size << SHIFT; /*size of buffer for data*/
+	size  = sizeof(struct gds_list) + bsize; /*size with header and buffer*/
+	list  = (struct gds_list *) malloc(size);
 	assert(list != NULL);
 	
-	size = size << SHIFT;
-	buffer = malloc(size);
-	assert(buffer != NULL);
-	
+	buffer      = TO_NEXT(list, sizeof(struct gds_list));
 	list->start = buffer;
-	list->end   = TO_NEXT(buffer, size); 
+	list->end   = TO_NEXT(buffer, bsize); 
 	list->next  = NULL;
 
 	return list;
@@ -137,7 +135,6 @@ queue_dequeue(struct gds_queue *queue, void *dst)
 	if (src == head->end) {
 		/*head is end, remove list*/
 		list = head->next;
-		free(head->start);
 		free(head);
 		queue->head = list;
 		src = list->start;
@@ -164,7 +161,6 @@ queue_peek(struct gds_queue *queue, void *dst)
 	if (src == head->end) {
 		/*head is end, remove list*/
 		list = head->next;
-		free(head->start);
 		free(head);
 		queue->head = list;
 		src = list->start;

@@ -1,13 +1,12 @@
 #include <string.h>
 #include <assert.h>
+
 #include "gds_stack.h"
+#include "gds_common.h"
 
 /* 2 ^ SHIFT = COUNT_ELEMENTS in buffer*/
 #define SHIFT	       13
 #define COUNT_ELEMENTS 8192
-
-#define TO_NEXT(buffer, size) (((char *) (buffer)) + (size))
-#define TO_PREV(buffer, size) (((char *) (buffer)) - (size))
 
 struct gds_list {
 	struct gds_list *prev;	
@@ -45,7 +44,6 @@ stack_delete(struct gds_stack *stack)
 	list = stack->list;
 	while (list != NULL) {
 		prev = list->prev;
-		free(list->start);
 		free(list);
 		list = prev;
 	}
@@ -62,7 +60,6 @@ stack_clear(struct gds_stack *stack)
 	list = stack->list;
 	while (list->prev != NULL) {
 		prev = list->prev;
-		free(list->start);
 		free(list);
 		list = prev;
 	}
@@ -76,16 +73,19 @@ list_create(size_t size)
 {
 	struct gds_list *list;
 	void  *buffer;
+	size_t bsize;
 	
-	list = (struct gds_list *) malloc(sizeof(struct gds_list));
+	assert(size > 0);
+
+	bsize = size << SHIFT; /*size of buffer for data*/
+	size  = sizeof(struct gds_list) + bsize; /*size with header and buffer*/
+	list  = (struct gds_list *) malloc(size);
 	assert(list != NULL);
 	
-	size   = size << SHIFT;
-	buffer = malloc(size);
-	assert(buffer != NULL);
-	
+	buffer      = TO_NEXT(list, sizeof(struct gds_list));
 	list->start = list->current = buffer;
-	list->end   = TO_NEXT(buffer, size);
+	list->end   = TO_NEXT(buffer, bsize);
+	
 	return list;
 }
 
@@ -131,9 +131,8 @@ stack_pop(struct gds_stack *stack, void *dst)
 	src  = list->current;
 
 	if (src == list->start) {
-		/*if currentent list is empty*/
+		/*currentent list is empty*/
 		stack->list = list->prev;
-		free(list->start);
 		free(list);
 		list = stack->list;
 		src  = list->current;
@@ -158,9 +157,8 @@ stack_pop2(struct gds_stack *stack)
 	src  = list->current;
 
 	if (src == list->start) {
-		/*if currentent list is empty*/
+		/*currentent list is empty*/
 		stack->list = list->prev;
-		free(list->start);
 		free(list);
 		list = stack->list;
 		src  = list->current;
@@ -183,10 +181,8 @@ stack_peek(struct gds_stack *stack, void *dst)
 	list = stack->list;
 	src  = list->current;
 
-	if (src == list->start) {
-		/*if currentent list is empty*/
+	if (src == list->start)
 		src = list->prev->current;
-	}
 	src = TO_PREV(src, size);	
 	memcpy(dst, src, size);
 }

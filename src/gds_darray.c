@@ -1,8 +1,11 @@
 #include <string.h> 
 #include <assert.h> 
+
 #include "gds_darray.h"
 
-#define COUNT 32
+/*starting number of elements of array*/
+#define COUNT 32 
+
 #define GET_CURRENT(buffer, current, size) \
 			(((char *) (buffer)) + ((current) * (size)))
 
@@ -12,8 +15,10 @@ darray_create(struct gds_darray *array, size_t size)
 	assert(array != NULL);
 	assert(size > 0);
 
-	array->buffer  = NULL;
-	array->count   = 0;
+	array->buffer  = malloc(COUNT * size);
+	assert(array->buffer != NULL);
+	
+	array->count   = COUNT;
 	array->current = 0;
 	array->size    = size;
 }
@@ -34,8 +39,10 @@ darray_clear(struct gds_darray *array)
 	/*free old buffer*/
 	free(array->buffer);
 	
-	array->buffer  = NULL;
-	array->count   = 0;
+	array->buffer = malloc(COUNT * array->size);
+	assert(array->buffer != NULL);
+	
+	array->count   = COUNT;
 	array->current = 0;
 }
 
@@ -70,9 +77,8 @@ darray_add(struct gds_darray *array, void *src)
 	
 	if (array->current == array->count) {
 		/*increase buffer*/
-		count  = array->count + COUNT;
-		buffer = realloc(array->buffer, count * array->size);
-		
+		count  = array->count << 1; /*to double size of buffer*/
+		buffer = realloc(array->buffer, count * array->size);	
 		assert(buffer != NULL);
 	
 		/*remember new buffer*/
@@ -99,8 +105,7 @@ darray_join(struct gds_darray *array, void *src, size_t count)
 	if (rest < count) {
 		/*increase buffer*/
 		new_count = (count - rest) + array->count;
-		buffer    = realloc(array->buffer, array->size * new_count);
-		
+		buffer    = realloc(array->buffer, array->size * new_count);	
 		assert(buffer != NULL);
 		
 		/*remember new buffer*/
@@ -128,9 +133,8 @@ darray_insert(struct gds_darray *array, void *src, size_t index)
 		void  *buffer;
 		size_t count;
 
-		count  = array->count + COUNT;
-		buffer = realloc(array->buffer, count * array->size);
-		
+		count  = array->count << 1; /*to double size of buffer*/
+		buffer = realloc(array->buffer, count * array->size);		
 		assert(buffer != NULL);
 	
 		/*remember new buffer*/
@@ -162,8 +166,10 @@ darray_getdata(struct gds_darray *array)
 	
 	buffer = array->buffer;
 	
-	array->buffer  = NULL;
-	array->count   = 0;
+	array->buffer = malloc(COUNT * array->size);
+	assert(array->buffer != NULL);
+	
+	array->count   = COUNT;
 	array->current = 0;
 	
 	return buffer;

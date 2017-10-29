@@ -2,8 +2,7 @@
 #include <assert.h>
 
 #include "gds_slist.h"
-
-#define GET_START_BUFFER(node, header) (((char *) (node)) + (header));
+#include "gds_common.h"
 
 void
 slist_create(struct gds_slist *list, size_t size,
@@ -47,7 +46,7 @@ slist_insert(struct gds_slist *list, void *src, size_t index)
 	node = (struct gds_node *) malloc(size);
 	assert(node != NULL);
 	
-	buffer     = (void *) GET_START_BUFFER(node, sizeof(struct gds_node));
+	buffer     = (void *) TO_NEXT(node, sizeof(struct gds_node));
 	node->data = buffer;
 	memcpy(buffer, src, list->size);
 
@@ -95,7 +94,7 @@ slist_append(struct gds_slist *list, void *src)
 	node = (struct gds_node *) malloc(size);
 	assert(node != NULL);
 	
-	buffer     = (void *) GET_START_BUFFER(node, sizeof(struct gds_node));
+	buffer     = (void *) TO_NEXT(node, sizeof(struct gds_node));
 	node->data = buffer;
 	node->next = NULL;
 	memcpy(buffer, src, list->size);
