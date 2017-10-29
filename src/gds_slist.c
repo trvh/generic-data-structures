@@ -3,6 +3,8 @@
 
 #include "gds_slist.h"
 
+#define GET_START_BUFFER(node, header) (((char *) (node)) + (header));
+
 void
 slist_create(struct gds_slist *list, size_t size,
 			 int (*cmp)(void *data, void *pattern))
@@ -26,7 +28,6 @@ slist_delete(struct gds_slist *list)
 	
 	for (node = list->head; node != NULL; node = next) {
 		next = node->next;
-		free(node->data);
 		free(node);
 	}
 }
@@ -40,21 +41,17 @@ slist_insert(struct gds_slist *list, void *src, size_t index)
 	
 	assert(list != NULL);
 	assert(src != NULL);
+	assert(list->count >= index);
 	
-	size   = list->size;	
-	buffer = malloc(size);		
-	assert(buffer != NULL);
-	
-	memcpy(buffer, src, size);
-	
-	node = (struct gds_node *) malloc(sizeof(struct gds_node));
+	size = sizeof(struct gds_node) + list->size;	
+	node = (struct gds_node *) malloc(size);
 	assert(node != NULL);
 	
+	buffer     = (void *) GET_START_BUFFER(node, sizeof(struct gds_node));
 	node->data = buffer;
-	
-	count = list->count;	
-	assert(count >= index);
+	memcpy(buffer, src, list->size);
 
+	count = list->count;	
 	if (count == index) {
 		tail = list->tail;
 		if (count == 0) {
@@ -94,17 +91,14 @@ slist_append(struct gds_slist *list, void *src)
 	assert(list != NULL);
 	assert(src != NULL);
 	
-	size   = list->size;	
-	buffer = malloc(size);		
-	assert(buffer != NULL);
-	
-	memcpy(buffer, src, size);
-	
-	node = (struct gds_node *) malloc(sizeof(struct gds_node));
+	size = sizeof(struct gds_node) + list->size;	
+	node = (struct gds_node *) malloc(size);
 	assert(node != NULL);
 	
+	buffer     = (void *) GET_START_BUFFER(node, sizeof(struct gds_node));
 	node->data = buffer;
 	node->next = NULL;
+	memcpy(buffer, src, list->size);
 	
 	tail = list->tail;
 	if (tail == NULL) {		
@@ -132,7 +126,6 @@ slist_remove(struct gds_slist *list, void *pattern, int option)
 	for (node = list->head; node != NULL; node = next) {
 		next = node->next;
 		if ((*cmp)(node->data, pattern) == 0) {
-			free(node->data);
 			free(node);
 			list->count--;
 			/*removing a reference with the remote node*/
@@ -220,7 +213,6 @@ slist_getdata(struct gds_slist *list, void *dst, size_t index)
 		prev->next = node->next;
 	}
 	memcpy(dst, node->data, list->size);
-	free(node->data);
 	free(node);
 	list->count--;
 }

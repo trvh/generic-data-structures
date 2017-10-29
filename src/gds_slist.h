@@ -10,7 +10,7 @@ enum {
 
 struct gds_node {
 	struct gds_node *next;
-	void			*data;
+	void *data;
 };
 
 struct gds_slist {
