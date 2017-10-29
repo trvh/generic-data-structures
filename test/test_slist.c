@@ -1,105 +1,129 @@
 #include <stdio.h>
-#include "../src/gds_slist.h"
-
-int
-cmp(void *p1, void *p2)
-{
-	int *i1 = (int *) p1;
-	int *i2 = (int *) p2;
-	return (*i1 == *i2) ? (0) : (1);
-}
+#include "../src/gds_dlist.h"
 
 void
 test1()
 {
-	struct gds_slist l1;
+	struct gds_dlist l1;
 	int i;
 	int *res;
 
-	slist_create(&l1, sizeof(int), cmp);
+	dlist_create(&l1, sizeof(int), cmp);
 
 	i = 1;
-	slist_insert(&l1, &i, 0);
+	dlist_insert(&l1, &i, 0);
 	i = 2;
-	slist_append(&l1, &i);
+	dlist_append(&l1, &i);
 	i = 3;
-	slist_append(&l1, &i);
+	dlist_append(&l1, &i);
 	i = 777;
-	slist_insert(&l1, &i, 3);
+	dlist_insert(&l1, &i, 3);
 
 	i = 1;
-	res = slist_search(&l1, &i);
+	res = dlist_search(&l1, &i);
 	
 	i = 3;
-	res = slist_search(&l1, &i);
+	res = dlist_search(&l1, &i);
 	
-	res = slist_index(&l1, 3);
+	res = dlist_index(&l1, 3);
+
+	printf("%d\n", *res);
 	
 	i = 1;
-	slist_remove(&l1, &i, ALL_NODES);
+	dlist_remove2(&l1, &i, ALL_NODES);
 
-	slist_delete(&l1);
+	dlist_delete(&l1);
 }
 
 void
 test2()
 {
-	struct gds_slist l1;
+	struct gds_dlist l1;
 	int i;
 
-	slist_create(&l1, sizeof(int), cmp);
+	dlist_create(&l1, sizeof(int), cmp);
 
 	i = 1;
-	slist_remove(&l1, &i, ALL_NODES);
+	dlist_remove2(&l1, &i, ALL_NODES);
 	
 	i = 1;
-	slist_insert(&l1, &i, 0);
+	dlist_insert(&l1, &i, 0);
 	
 	i = 1;
-	slist_remove(&l1, &i, ALL_NODES);
+	dlist_remove2(&l1, &i, ALL_NODES);
 	
 	i = 2;
-	slist_append(&l1, &i);
+	dlist_append(&l1, &i);
 	i = 3;
-	slist_append(&l1, &i);
+	dlist_append(&l1, &i);
 	i = 1;
-	slist_insert(&l1, &i, 2);
+	dlist_insert(&l1, &i, 2);
 	i = 1;
-	slist_insert(&l1, &i, 0);
+	dlist_insert(&l1, &i, 0);
 
 	i = 1;
-	slist_remove(&l1, &i, ALL_NODES);
+	dlist_remove2(&l1, &i, ALL_NODES);
 	
-	slist_delete(&l1);
+	dlist_delete(&l1);
 }
 
 void
 test3()
 {
-	struct gds_slist l1;
+	struct gds_dlist l1;
 	int i;
 	int data;
 
-	slist_create(&l1, sizeof(int), cmp);
+	dlist_create(&l1, sizeof(int), cmp);
 
 	i = 1;
-	slist_insert(&l1, &i, 0);
+	dlist_insert(&l1, &i, 0);
 	
 	i = 2;
-	slist_append(&l1, &i);
+	dlist_append(&l1, &i);
 	i = 3;
-	slist_append(&l1, &i);
+	dlist_append(&l1, &i);
 
-	slist_getdata(&l1, &data, 2);
+	dlist_getdata(&l1, &data, 2);
 	
-	slist_delete(&l1);
+	dlist_delete(&l1);
 }
+
+void
+test4()
+{
+	struct gds_dlist l1;
+	int i;
+	int *data;
+
+	dlist_create(&l1, sizeof(int), cmp);
+
+	i = 1;
+	dlist_insert(&l1, &i, 0);
+	
+	i = 2;
+	dlist_append(&l1, &i);
+	i = 3;
+	dlist_append(&l1, &i);
+	
+	i = 1;
+	data = (int *) dlist_search(&l1, &i);
+	dlist_remove(&l1, GET_PTR_NODE(data));
+
+	i = 3;
+	data = (int *) dlist_search(&l1, &i);
+	dlist_remove(&l1, GET_PTR_NODE(data));
+	
+	dlist_delete(&l1);
+}
+
 int
 main()
 {
 	test1();	
 	test2();	
 	test3();	
+	test4();	
 	return 0;
 }
 

@@ -7,7 +7,7 @@
 #define COUNT 32 
 
 #define GET_CURRENT(buffer, current, size) \
-			(((char *) (buffer)) + ((current) * (size)))
+			((void *) (((char *) (buffer)) + ((current) * (size))))
 
 void
 darray_create(struct gds_darray *array, size_t size)
@@ -15,7 +15,7 @@ darray_create(struct gds_darray *array, size_t size)
 	assert(array != NULL);
 	assert(size > 0);
 
-	array->buffer  = malloc(COUNT * size);
+	array->buffer = malloc(COUNT * size);
 	assert(array->buffer != NULL);
 	
 	array->count   = COUNT;

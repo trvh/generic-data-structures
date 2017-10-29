@@ -4,10 +4,10 @@
 #include <stdlib.h>
 
 struct gds_queue {
-	struct gds_list *head;  /*stores the first list*/
-	struct gds_list *tail;  /*stores the last list*/
-	void  *start; /*current pointer on data of first list*/
-	void  *end;   /*current pointer on data of last list*/
+	struct gds_list *head;
+	struct gds_list *tail;
+	void  *start; /*current pointer on data of head*/
+	void  *end;   /*current pointer on data of tail*/
 	size_t size;  /*size of one element*/
 	size_t count;
 };
