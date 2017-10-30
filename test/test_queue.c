@@ -15,11 +15,11 @@ test1()
 	
 	
 	for (i = 0; i < MAX; i++)
-		queue_enqueue(&queue, &i);
+		queue_add(&queue, &i);
 
 	sum = 0;
 	while (queue.count != 0) {
-		queue_dequeue(&queue, &i);
+		queue_pop(&queue, &i);
 		sum += i;
 	}
 	printf("%ld\n", sum);
@@ -38,12 +38,38 @@ test2()
 	
 	
 	for (j = 1, i = 0; i < MAX; i++)
-		queue_enqueue(&queue, &j);
+		queue_add(&queue, &j);
 
 	sum = 0;
 	while (queue.count-- != 0) {
-		queue_peek(&queue, &i);
+		queue_front(&queue, &i);
 		sum += i;
+	}
+	printf("%ld\n", sum);
+	
+
+	queue_clear(&queue);
+	queue_delete(&queue);
+}
+
+void
+test3()
+{
+	struct gds_queue queue;
+	int i;
+	size_t sum;
+
+	queue_create(&queue, sizeof(int));
+	
+	
+	for (i = 0; i < MAX; i++)
+		queue_add(&queue, &i);
+
+	sum = 0;
+	while (queue.count != 0) {
+		queue_back(&queue, &i);
+		sum += i;
+		queue_pop(&queue, &i);
 	}
 	printf("%ld\n", sum);
 	
@@ -57,6 +83,7 @@ main()
 {
 	test1();	
 	test2();	
+	test3();	
 	return 0;
 }
 
