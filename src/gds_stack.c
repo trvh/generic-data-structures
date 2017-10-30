@@ -9,7 +9,7 @@
 #define COUNT_ELEMENTS 8192
 
 struct gds_list {
-	struct gds_list *prev;	
+	struct gds_list *prev;
 	void			*start;   /*pointer to start of the buffer*/
 	void			*current; /*pointer on free place in buffer*/
 	void			*end;	  /*pointer on end of buffer*/
@@ -137,7 +137,7 @@ stack_pop(struct gds_stack *stack, void *dst)
 		list = stack->list;
 		src  = list->current;
 	}
-	src = TO_PREV(src, size);	
+	src = TO_PREV(src, size);
 	memcpy(dst, src, size);
 	list->current = src;	
 	stack->count--;
