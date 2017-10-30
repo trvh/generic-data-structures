@@ -7,6 +7,10 @@ struct gds_tree {
 	struct gds_tnode *root;
 };
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void tree_create(struct gds_tree *tree);
 void tree_delete(struct gds_tree *tree);
 
@@ -16,4 +20,9 @@ int  tree_search(struct gds_tree *tree, int value);
 
 void round_wide(struct gds_tree *tree);
 void round_bottom(struct gds_tree *tree);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif

@@ -20,6 +20,10 @@ struct gds_dlist {
 	size_t			  count;
 };
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void dlist_create(struct gds_dlist *list, size_t size);
 void dlist_delete(struct gds_dlist *list);
 
@@ -32,4 +36,9 @@ struct gds_dnode *dlist_before(struct gds_dlist *list,
 							  struct gds_dnode *node, void *src);
 
 void dlist_remove(struct gds_dlist *list, struct gds_dnode *node);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif

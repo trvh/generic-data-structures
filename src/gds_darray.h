@@ -10,6 +10,10 @@ struct gds_darray {
 	size_t current; /*count of elements in buffer*/
 };
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void darray_create(struct gds_darray *array, size_t size);
 void darray_delete(struct gds_darray *array);
 
@@ -21,4 +25,9 @@ void darray_join(struct gds_darray *array, void *src, size_t count);
 void darray_insert(struct gds_darray *array, void *src, size_t index);
 
 void *darray_getdata(struct gds_darray *array);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif

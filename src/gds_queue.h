@@ -3,6 +3,10 @@
 
 #include <stdlib.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct gds_queue {
 	struct gds_list *head;
 	struct gds_list *tail;
@@ -22,4 +26,9 @@ void queue_pop(struct gds_queue *queue, void *dst);
 
 void queue_front(struct gds_queue *queue, void *dst);
 void queue_back(struct gds_queue *queue, void *dst);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif
