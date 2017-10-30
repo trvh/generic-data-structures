@@ -1,5 +1,5 @@
-#ifndef QUEUE_UNIDIRECTIONAL_LIST
-#define QUEUE_UNIDIRECTIONAL_LIST
+#ifndef GDS_QUEUE_HEADER
+#define GDS_QUEUE_HEADER
 
 #include <stdlib.h>
 
@@ -9,7 +9,7 @@ struct gds_queue {
 	void  *start; /*current pointer on data of head*/
 	void  *end;   /*current pointer on data of tail*/
 	size_t size;  /*size of one element*/
-	size_t count;
+	size_t count; /*current number of elements in queue*/
 };
 
 void queue_create(struct gds_queue *queue, size_t size);
@@ -17,7 +17,9 @@ void queue_delete(struct gds_queue *queue);
 
 void queue_clear(struct gds_queue *queue); 
 
-void queue_enqueue(struct gds_queue *queue, void *src);
-void queue_dequeue(struct gds_queue *queue, void *dst);
-void queue_peek(struct gds_queue *queue, void *dst);
+void queue_add(struct gds_queue *queue, void *src);
+void queue_pop(struct gds_queue *queue, void *dst);
+
+void queue_front(struct gds_queue *queue, void *dst);
+void queue_back(struct gds_queue *queue, void *dst);
 #endif

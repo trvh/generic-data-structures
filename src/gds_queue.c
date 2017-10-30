@@ -25,8 +25,7 @@ queue_create(struct gds_queue *queue, size_t size)
 	assert(size > 0);
 
 	/*queue is empty, create new list*/
-	list = list_create(size);
-	
+	list = list_create(size);	
 	/*remember new list in queue*/
 	queue->head  = queue->tail = list;
 	queue->start = queue->end = list->start;
@@ -93,7 +92,7 @@ list_create(size_t size)
 }
 
 void
-queue_enqueue(struct gds_queue *queue, void *src)
+queue_add(struct gds_queue *queue, void *src)
 {
 	struct gds_list *tail, *list;
 	void  *dst;
@@ -105,11 +104,11 @@ queue_enqueue(struct gds_queue *queue, void *src)
 	size = queue->size;
 	tail = queue->tail;
 	dst  = queue->end;
-	
 	if (dst == tail->end) {
 		/*queue is full, add new list*/
 		list = list_create(size);	
 		tail->next  = list;
+		/*remember new list*/
 		queue->tail = list;
 		dst = list->start;
 	}
@@ -119,7 +118,7 @@ queue_enqueue(struct gds_queue *queue, void *src)
 }
 
 void
-queue_dequeue(struct gds_queue *queue, void *dst)
+queue_pop(struct gds_queue *queue, void *dst)
 {
 	struct gds_list *head, *list;
 	void  *src;
@@ -136,6 +135,7 @@ queue_dequeue(struct gds_queue *queue, void *dst)
 		/*head is end, remove list*/
 		list = head->next;
 		free(head);
+		/*remember next list*/
 		queue->head = list;
 		src = list->start;
 	}
@@ -145,7 +145,7 @@ queue_dequeue(struct gds_queue *queue, void *dst)
 }
 
 void
-queue_peek(struct gds_queue *queue, void *dst)
+queue_front(struct gds_queue *queue, void *dst)
 {
 	struct gds_list *head, *list;
 	void  *src;
@@ -157,7 +157,6 @@ queue_peek(struct gds_queue *queue, void *dst)
 	size = queue->size;
 	head = queue->head;
 	src  = queue->start;
-
 	if (src == head->end) {
 		/*head is end, remove list*/
 		list = head->next;
@@ -166,5 +165,19 @@ queue_peek(struct gds_queue *queue, void *dst)
 		src = list->start;
 		queue->start = src;
 	}
+	memcpy(dst, src, size);
+}
+
+void
+queue_back(struct gds_queue *queue, void *dst)
+{
+	void  *src;
+	size_t size;
+
+	assert(queue != NULL);
+	assert(dst != NULL);
+	
+	size = queue->size;
+	src  = TO_PREV(queue->end, size);
 	memcpy(dst, src, size);
 }
