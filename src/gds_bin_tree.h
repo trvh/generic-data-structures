@@ -1,5 +1,5 @@
-#ifndef BINARY_TREE_HEADER
-#define BINARY_TREE_HEADER
+#ifndef GDS_BINARY_TREE_HEADER
+#define GDS_BINARY_TREE_HEADER
 
 #include <stdlib.h>
 

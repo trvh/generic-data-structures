@@ -1,5 +1,5 @@
-#ifndef DYNAMIC_ARRAY_HEADER
-#define DYNAMIC_ARRAY_HEADER
+#ifndef GDS_DYNAMIC_ARRAY_HEADER
+#define GDS_DYNAMIC_ARRAY_HEADER
 
 #include <stdlib.h> 
 

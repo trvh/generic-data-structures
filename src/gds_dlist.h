@@ -1,5 +1,5 @@
-#ifndef DOUBLE_LIST_HEADER
-#define DOUBLE_LIST_HEADER
+#ifndef GDS_DOUBLE_LIST_HEADER
+#define GDS_DOUBLE_LIST_HEADER
 
 #include <stdlib.h>
 
