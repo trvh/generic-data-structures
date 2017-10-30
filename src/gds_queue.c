@@ -4,14 +4,15 @@
 #include "gds_queue.h"
 #include "gds_common.h"
 
-/* 2 ^ SHIFT = COUNT_ELEMENTS in buffer*/
-#define SHIFT	       13
-#define COUNT_ELEMENTS 8192
+/*number of elements in one list*/
+#define COUNT_ELEMENTS 256
+/* 2 ^ SHIFT = COUNT_ELEMENTS*/
+#define SHIFT	       8
 
 struct gds_list {
-	struct gds_list *next;	
-	void			*start; /*pointer to the beginning of the buffer*/
-	void			*end;   /*pointer on end of buffer*/
+	struct gds_list *next;
+	void			*end; /*pointer on end of buffer*/
+	/*hidden buffer for data will place here*/
 };
 
 static struct gds_list *list_create(size_t size);
@@ -28,7 +29,8 @@ queue_create(struct gds_queue *queue, size_t size)
 	list = list_create(size);	
 	/*remember new list in queue*/
 	queue->head  = queue->tail = list;
-	queue->start = queue->end = list->start;
+	/*remember buffer for data*/
+	queue->start = queue->end  = TO_NEXT(list, sizeof(struct gds_list));
 	queue->size  = size;
 	queue->count = 0;
 }
@@ -62,10 +64,11 @@ queue_clear(struct gds_queue *queue)
 		free(list);
 		list = next;
 	}
-	
-	queue->tail = queue->head;
-	queue->end  = queue->start;
-	queue->head->next = NULL;
+
+	list = queue->head;
+	queue->tail  = list;
+	queue->start = queue->end = TO_NEXT(list, sizeof(struct gds_list));
+	list->next   = NULL;
 	queue->count = 0;
 }
 
@@ -83,11 +86,11 @@ list_create(size_t size)
 	list  = (struct gds_list *) malloc(size);
 	assert(list != NULL);
 	
+	/*get start of buffer*/
 	buffer      = TO_NEXT(list, sizeof(struct gds_list));
-	list->start = buffer;
+	/*remember end of buffer*/
 	list->end   = TO_NEXT(buffer, bsize); 
 	list->next  = NULL;
-
 	return list;
 }
 
@@ -110,7 +113,7 @@ queue_add(struct gds_queue *queue, void *src)
 		tail->next  = list;
 		/*remember new list*/
 		queue->tail = list;
-		dst = list->start;
+		dst = TO_NEXT(list, sizeof(struct gds_list));
 	}
 	memcpy(dst, src, size);
 	queue->end = TO_NEXT(dst, size);
@@ -132,12 +135,14 @@ queue_pop(struct gds_queue *queue, void *dst)
 	src  = queue->start;
 
 	if (src == head->end) {
-		/*head is end, remove list*/
+		/*head is end, get next list*/
 		list = head->next;
+		/*remove empty list*/
 		free(head);
-		/*remember next list*/
+		/*remember current list*/
 		queue->head = list;
-		src = list->start;
+		/*get start of buffer for data*/
+		src = TO_NEXT(list, sizeof(struct gds_list));
 	}
 	memcpy(dst, src, size);
 	queue->start = TO_NEXT(src, size);
@@ -158,11 +163,10 @@ queue_front(struct gds_queue *queue, void *dst)
 	head = queue->head;
 	src  = queue->start;
 	if (src == head->end) {
-		/*head is end, remove list*/
 		list = head->next;
 		free(head);
 		queue->head = list;
-		src = list->start;
+		src = TO_NEXT(list, sizeof(struct gds_list));
 		queue->start = src;
 	}
 	memcpy(dst, src, size);
