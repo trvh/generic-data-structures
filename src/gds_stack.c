@@ -4,15 +4,16 @@
 #include "gds_stack.h"
 #include "gds_common.h"
 
-/* 2 ^ SHIFT = COUNT_ELEMENTS in buffer*/
-#define SHIFT	       13
-#define COUNT_ELEMENTS 8192
+/*number of elements in one list*/
+#define COUNT_ELEMENTS 256
+/* 2 ^ SHIFT = COUNT_ELEMENTS*/
+#define SHIFT	       8
 
 struct gds_list {
 	struct gds_list *prev;
-	void			*start;   /*pointer to start of the buffer*/
 	void			*current; /*pointer on free place in buffer*/
 	void			*end;	  /*pointer on end of buffer*/
+	/*hidden buffer for data will place here*/
 };
 
 static struct gds_list *list_create(size_t size);
@@ -64,8 +65,9 @@ stack_clear(struct gds_stack *stack)
 		list = prev;
 	}
 	stack->list   = list;
+	/*shift to start of buffer*/
+	list->current = TO_NEXT(list, sizeof(struct gds_list));
 	stack->count  = 0;
-	list->current = list->start;
 }
 
 struct gds_list *
@@ -82,9 +84,11 @@ list_create(size_t size)
 	list  = (struct gds_list *) malloc(size);
 	assert(list != NULL);
 	
-	buffer      = TO_NEXT(list, sizeof(struct gds_list));
-	list->start = list->current = buffer;
-	list->end   = TO_NEXT(buffer, bsize);
+	/*shift to start of buffer*/
+	buffer        = TO_NEXT(list, sizeof(struct gds_list));
+	list->current = buffer;
+	/*shift to end of buffer*/
+	list->end     = TO_NEXT(buffer, bsize);
 	
 	return list;
 }
@@ -102,12 +106,14 @@ stack_push(struct gds_stack *stack, void *src)
 	size = stack->size;	
 	list = stack->list;
 	dst  = list->current;
-
 	if (dst == list->end) {		
 		/*stack is full, add new list*/
 		list_new = list_create(size);
+		/*put new list on top of the stack*/
 		stack->list = list_new;
+		/*remember previous list*/
 		list_new->prev = list;
+		/*change current list*/
 		list = list_new;
 		dst  = list_new->current;	
 	}
@@ -120,20 +126,23 @@ void
 stack_pop(struct gds_stack *stack, void *dst)
 {
 	struct gds_list *list;
-	void  *src;
+	void  *src, *start;
 	size_t size;
 	
 	assert(stack != NULL);
 	assert(dst != NULL);
 	
-	size = stack->size;
-	list = stack->list;
-	src  = list->current;
-
-	if (src == list->start) {
+	size  = stack->size;
+	list  = stack->list;
+	src   = list->current;
+	/*shift to start of buffer*/
+	start = TO_NEXT(list, sizeof(struct gds_list));
+	if (src == start) {
 		/*currentent list is empty*/
 		stack->list = list->prev;
+		/*remove list*/
 		free(list);
+		/*change current list*/
 		list = stack->list;
 		src  = list->current;
 	}
@@ -147,16 +156,16 @@ void
 stack_pop2(struct gds_stack *stack)
 {
 	struct gds_list *list;
-	void  *src;
+	void  *src, *start;
 	size_t size;
 	
 	assert(stack != NULL);
 	
-	size = stack->size;
-	list = stack->list;
-	src  = list->current;
-
-	if (src == list->start) {
+	size  = stack->size;
+	list  = stack->list;
+	src   = list->current;
+	start = TO_NEXT(list, sizeof(struct gds_list));
+	if (src == start) {
 		/*currentent list is empty*/
 		stack->list = list->prev;
 		free(list);
@@ -171,7 +180,7 @@ void
 stack_peek(struct gds_stack *stack, void *dst)
 {
 	struct gds_list *list;
-	void  *src;
+	void  *src, *start;
 	size_t size;
 	
 	assert(stack != NULL);
@@ -180,8 +189,8 @@ stack_peek(struct gds_stack *stack, void *dst)
 	size = stack->size;
 	list = stack->list;
 	src  = list->current;
-
-	if (src == list->start)
+	start = TO_NEXT(list, sizeof(struct gds_list));
+	if (src == start)
 		src = list->prev->current;
 	src = TO_PREV(src, size);	
 	memcpy(dst, src, size);
