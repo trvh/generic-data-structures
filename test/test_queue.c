@@ -31,17 +31,17 @@ void
 test2()
 {
 	struct gds_queue queue;
-	int i;
+	int i, j;
 	size_t sum;
 
 	queue_create(&queue, sizeof(int));
 	
 	
-	for (i = 0; i < MAX; i++)
-		queue_enqueue(&queue, &i);
+	for (j = 1, i = 0; i < MAX; i++)
+		queue_enqueue(&queue, &j);
 
 	sum = 0;
-	while (--queue.count != 0) {
+	while (queue.count-- != 0) {
 		queue_peek(&queue, &i);
 		sum += i;
 	}

@@ -164,7 +164,7 @@ queue_peek(struct gds_queue *queue, void *dst)
 		free(head);
 		queue->head = list;
 		src = list->start;
+		queue->start = src;
 	}
 	memcpy(dst, src, size);
-	queue->start = src;
 }

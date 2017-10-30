@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "../src/gds_darray.h"
 
-#define MAX 100000
+#define MAX 10000
 
 void
 test1()

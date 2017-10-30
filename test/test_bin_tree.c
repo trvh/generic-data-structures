@@ -1,9 +1,9 @@
-#include "bin_tree.h"
+#include "../src/gds_bin_tree.h"
 
 int
 main()
 {
-	struct tree_gds tree;
+	struct gds_tree tree;
 	
 	tree_create(&tree);
 	
@@ -16,5 +16,7 @@ main()
 	tree_insert(&tree, 13);
 	
 	tree_remove(&tree, 12);
+
+	tree_delete(&tree);
 	return 0;
 }
