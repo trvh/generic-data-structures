@@ -1,6 +1,12 @@
 #include <stdio.h> 
 #include <assert.h> 
+
 #include "gds_bin_tree.h"
+
+enum {
+	IS_EMPTY,
+	IS_FINDED,
+};
 
 struct gds_tnode {
 	struct gds_tnode *left;
@@ -69,7 +75,7 @@ tree_insert(struct gds_tree *tree, int value)
 
 	struct gds_tnode *root = tree->root;
 	if (root == NULL) {
-		struct gds_tnode *node  =
+		struct gds_tnode *node =
 			(struct gds_tnode *) malloc(sizeof(struct gds_tnode));
 		
 		node->value = value;

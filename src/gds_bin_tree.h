@@ -1,8 +1,7 @@
-#ifndef BINARY_TREE_RECURSIVE
-#define BINARY_TREE_RECURSIVE
+#ifndef BINARY_TREE_HEADER
+#define BINARY_TREE_HEADER
 
 #include <stdlib.h>
-#include "gds_consts.h"
 
 struct gds_tree {
 	struct gds_tnode *root;
