@@ -8,8 +8,8 @@ extern "C" {
 #endif
 
 struct gds_queue {
-	struct gds_list *head;
-	struct gds_list *tail;
+	struct gds_qnode *head;
+	struct gds_qnode *tail;
 	void  *start; /*current pointer on data of head*/
 	void  *end;   /*current pointer on data of tail*/
 	size_t size;  /*size of one element*/

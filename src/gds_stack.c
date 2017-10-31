@@ -4,33 +4,34 @@
 #include "gds_stack.h"
 #include "gds_common.h"
 
-/*number of elements in one list*/
+/*number of elements in one node*/
 #define COUNT_ELEMENTS 256
+
 /* 2 ^ SHIFT = COUNT_ELEMENTS*/
 #define SHIFT	       8
 
-struct gds_list {
-	struct gds_list *prev;
-	void			*current; /*pointer on free place in buffer*/
-	void			*end;	  /*pointer on end of buffer*/
-	/*hidden buffer for data will place here*/
+struct gds_snode {
+	struct gds_snode *prev;
+	void			 *current; /*pointer on free place in buffer*/
+	void			 *end;	  /*pointer on end of buffer*/
+	/*hidden buffer for data will starte here*/
 };
 
-static struct gds_list *list_create(size_t size);
+static struct gds_snode *node_create(size_t size);
 
 void
 stack_create(struct gds_stack *stack, size_t size)
 {	
-	struct gds_list *list;
+	struct gds_snode *node;
 	
 	assert(stack != NULL);
 	assert(size > 0);
 	
-	/*stack is empty, create new list*/
-	list = list_create(size);
-	list->prev = NULL;
+	/*stack is empty, create new node*/
+	node = node_create(size);
+	node->prev = NULL;
 	
-	stack->list  = list;
+	stack->list  = node;
 	stack->size  = size;
 	stack->count = 0;
 }
@@ -38,65 +39,65 @@ stack_create(struct gds_stack *stack, size_t size)
 void
 stack_delete(struct gds_stack *stack)
 {
-	struct gds_list *list, *prev;
+	struct gds_snode *node, *prev;
 
 	assert(stack != NULL);
 	
-	list = stack->list;
-	while (list != NULL) {
-		prev = list->prev;
-		free(list);
-		list = prev;
+	node = stack->list;
+	while (node != NULL) {
+		prev = node->prev;
+		free(node);
+		node = prev;
 	}
 }
 
 void
 stack_clear(struct gds_stack *stack)
 {
-	struct gds_list *list, *prev;
+	struct gds_snode *node, *prev;
 
 	assert(stack != NULL);
 	
-	/*delete all lists before first*/
-	list = stack->list;
-	while (list->prev != NULL) {
-		prev = list->prev;
-		free(list);
-		list = prev;
+	/*delete all nodes before first*/
+	node = stack->list;
+	while (node->prev != NULL) {
+		prev = node->prev;
+		free(node);
+		node = prev;
 	}
-	stack->list   = list;
+	stack->list   = node;
 	/*shift to start of buffer*/
-	list->current = TO_NEXT(list, sizeof(struct gds_list));
+	node->current = TO_NEXT(node, sizeof(struct gds_snode));
 	stack->count  = 0;
 }
 
-struct gds_list *
-list_create(size_t size)
+struct gds_snode *
+node_create(size_t size)
 {
-	struct gds_list *list;
+	struct gds_snode *node;
 	void  *buffer;
 	size_t bsize;
 	
 	assert(size > 0);
 
 	bsize = size << SHIFT; /*size of buffer for data*/
-	size  = sizeof(struct gds_list) + bsize; /*size with header and buffer*/
-	list  = (struct gds_list *) malloc(size);
-	assert(list != NULL);
+	size  = sizeof(struct gds_snode) + bsize; /*size with header and buffer*/
+	node  = (struct gds_snode *) malloc(size);
+	assert(node != NULL);
 	
 	/*shift to start of buffer*/
-	buffer        = TO_NEXT(list, sizeof(struct gds_list));
-	list->current = buffer;
+	buffer        = TO_NEXT(node, sizeof(struct gds_snode));
+	node->current = buffer;
 	/*shift to end of buffer*/
-	list->end     = TO_NEXT(buffer, bsize);
+	node->end     = TO_NEXT(buffer, bsize);
 	
-	return list;
+	return node;
 }
 
 void
 stack_push(struct gds_stack *stack, void *src)
 {
-	struct gds_list *list, *list_new;
+	struct gds_snode *node, *node_new;
 	void  *dst;
 	size_t size;
 
@@ -104,28 +105,28 @@ stack_push(struct gds_stack *stack, void *src)
 	assert(src != NULL);
 	
 	size = stack->size;	
-	list = stack->list;
-	dst  = list->current;
-	if (dst == list->end) {		
-		/*stack is full, add new list*/
-		list_new = list_create(size);
-		/*put new list on top of the stack*/
-		stack->list = list_new;
-		/*remember previous list*/
-		list_new->prev = list;
-		/*change current list*/
-		list = list_new;
-		dst  = list_new->current;	
+	node = stack->list;
+	dst  = node->current;
+	if (dst == node->end) {		
+		/*stack is full, add new node*/
+		node_new = node_create(size);
+		/*put new node on top of the stack*/
+		stack->list = node_new;
+		/*remember previous node*/
+		node_new->prev = node;
+		/*change current node*/
+		node = node_new;
+		dst  = node_new->current;	
 	}
 	memcpy(dst, src, size);
-	list->current = TO_NEXT(dst, size);
+	node->current = TO_NEXT(dst, size);
 	stack->count++;
 }
 
 void
 stack_pop(struct gds_stack *stack, void *dst)
 {
-	struct gds_list *list;
+	struct gds_snode *node;
 	void  *src, *start;
 	size_t size;
 	
@@ -133,53 +134,53 @@ stack_pop(struct gds_stack *stack, void *dst)
 	assert(dst != NULL);
 	
 	size  = stack->size;
-	list  = stack->list;
-	src   = list->current;
+	node  = stack->list;
+	src   = node->current;
 	/*shift to start of buffer*/
-	start = TO_NEXT(list, sizeof(struct gds_list));
+	start = TO_NEXT(node, sizeof(struct gds_snode));
 	if (src == start) {
-		/*currentent list is empty*/
-		stack->list = list->prev;
-		/*remove list*/
-		free(list);
-		/*change current list*/
-		list = stack->list;
-		src  = list->current;
+		/*currentent node is empty*/
+		stack->list = node->prev;
+		/*remove node*/
+		free(node);
+		/*change current node*/
+		node = stack->list;
+		src  = node->current;
 	}
 	src = TO_PREV(src, size);
 	memcpy(dst, src, size);
-	list->current = src;	
+	node->current = src;	
 	stack->count--;
 }
 
 void
 stack_pop2(struct gds_stack *stack)
 {
-	struct gds_list *list;
+	struct gds_snode *node;
 	void  *src, *start;
 	size_t size;
 	
 	assert(stack != NULL);
 	
 	size  = stack->size;
-	list  = stack->list;
-	src   = list->current;
-	start = TO_NEXT(list, sizeof(struct gds_list));
+	node  = stack->list;
+	src   = node->current;
+	start = TO_NEXT(node, sizeof(struct gds_snode));
 	if (src == start) {
-		/*currentent list is empty*/
-		stack->list = list->prev;
-		free(list);
-		list = stack->list;
-		src  = list->current;
+		/*currentent node is empty*/
+		stack->list = node->prev;
+		free(node);
+		node = stack->list;
+		src  = node->current;
 	}
-	list->current = TO_PREV(src, size);	
+	node->current = TO_PREV(src, size);	
 	stack->count--;
 }
 
 void
 stack_peek(struct gds_stack *stack, void *dst)
 {
-	struct gds_list *list;
+	struct gds_snode *node;
 	void  *src, *start;
 	size_t size;
 	
@@ -187,11 +188,11 @@ stack_peek(struct gds_stack *stack, void *dst)
 	assert(dst != NULL);
 	
 	size = stack->size;
-	list = stack->list;
-	src  = list->current;
-	start = TO_NEXT(list, sizeof(struct gds_list));
+	node = stack->list;
+	src  = node->current;
+	start = TO_NEXT(node, sizeof(struct gds_snode));
 	if (src == start)
-		src = list->prev->current;
+		src = node->prev->current;
 	src = TO_PREV(src, size);	
 	memcpy(dst, src, size);
 }

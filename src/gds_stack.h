@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 struct gds_stack {
-	struct gds_list *list; /*a top list in stack*/
+	struct gds_snode *list; /*a top node of list*/
 	size_t count; /*number of elements*/
 	size_t size; /*size of one element*/
 };
