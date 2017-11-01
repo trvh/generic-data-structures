@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 
-/*offset from header of node, here start of buffer for data*/
+/*offset from start of node header, here start of buffer for data*/
 #define DATA_DNODE(node) \
 	((void *) (((char *) (node)) + (sizeof(struct gds_dnode))))
 
@@ -16,8 +16,8 @@ struct gds_dnode {
 struct gds_dlist {
 	struct gds_dnode *head;
 	struct gds_dnode *tail;
-	size_t			  size;
-	size_t			  count;
+	size_t			  size; /*size of one element*/
+	size_t			  count; /*number of elements in list*/
 };
 
 #ifdef __cplusplus
