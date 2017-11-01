@@ -1,12 +1,24 @@
-This library for work with stack.
-Description:
-1) Stack implemented on a unidirectional list.
-2) The number of stacks is unlimited.
-3) You can create a stack for storing an element of any size.
-4) Good for storing elements with large size since
-	the elements are passed through pointers.	
-5) Function memcpy() is used to copy elements of any size
-	but if you know the size of the elements you can replace it
-	with a function to work with this element but you will lose
-	the ability to create stacks with elements of
-	a different size but will win the speed of the program.
+	The library implement generic data structures such as lists, dynamic array,
+stack, queue, binary tree, hash table on program language C. 
+	Although design of C not provide of mechanisms for generic programming
+like templates in C++ or generic in Ada, Java, there are two ways for implementation 
+of generic data structures on pure C. The first way is use preprocessor for imitacion 
+of templates C++, it is in spirit C - use tools not directly intended for task (header 
+files and directives of preprocessor for imitacion of modules, anonym enums for define 
+of consts, etc). The second way is use of void pointers, callback functions, and explicit 
+define size of object. The primary distinction of approaches the following: create
+separate function for separate types of data (templates in C++, preprocessor of C) or create 
+function which work with any types of data (to pass arguments through void pointers).
+	This library implements with second way. Although it has strong disadvantages: lack of
+check of data types by compiler, slow speed to copy data (memcpy, memmove), but it is more
+clear way for implementation generic data structures on C than imitate templates by preprocessor.
+
+	Library provide the following functional:
+1) you can create any number of instance of lists, dynamic arrays, stacks etc.
+2) concrete instance of data structure (list, stack) can keep one type (int, 
+double, user data, etc).
+3) All data pass to instance will save in heap and all work bounding with
+memory allocation will hidden in library.
+
+	Source code of library written in ANSI C89 (any compiler of c/c++ can compile it).
+Library dependece only libc (realloc, malloc, free, memcpy, memmove).
