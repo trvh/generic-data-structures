@@ -12,8 +12,7 @@
 
 struct gds_snode {
 	struct gds_snode *prev;
-	void			 *current; /*pointer on free place in buffer*/
-	void			 *end;	  /*pointer on end of buffer*/
+	void			 *end; /*pointer on end of buffer*/
 	/*hidden buffer for data will starte here*/
 };
 
@@ -32,6 +31,7 @@ stack_create(struct gds_stack *stack, size_t size)
 	node->prev = NULL;
 	
 	stack->list  = node;
+	stack->top   = TO_NEXT(node, sizeof(struct gds_snode));
 	stack->size  = size;
 	stack->count = 0;
 }
@@ -67,7 +67,7 @@ stack_clear(struct gds_stack *stack)
 	}
 	stack->list   = node;
 	/*shift to start of buffer*/
-	node->current = TO_NEXT(node, sizeof(struct gds_snode));
+	stack->top    = TO_NEXT(node, sizeof(struct gds_snode));
 	stack->count  = 0;
 }
 
@@ -86,11 +86,9 @@ node_create(size_t size)
 	assert(node != NULL);
 	
 	/*shift to start of buffer*/
-	buffer        = TO_NEXT(node, sizeof(struct gds_snode));
-	node->current = buffer;
+	buffer = TO_NEXT(node, sizeof(struct gds_snode));
 	/*shift to end of buffer*/
-	node->end     = TO_NEXT(buffer, bsize);
-	
+	node->end = TO_NEXT(buffer, bsize);
 	return node;
 }
 
@@ -106,20 +104,20 @@ stack_push(struct gds_stack *stack, void *src)
 	
 	size = stack->size;	
 	node = stack->list;
-	dst  = node->current;
+	dst  = stack->top;
 	if (dst == node->end) {		
 		/*stack is full, add new node*/
 		node_new = node_create(size);
-		/*put new node on top of the stack*/
-		stack->list = node_new;
 		/*remember previous node*/
 		node_new->prev = node;
-		/*change current node*/
-		node = node_new;
-		dst  = node_new->current;	
+		/*put new node on top of the stack*/
+		stack->list = node_new;
+		stack->top  = TO_NEXT(node_new, sizeof(struct gds_snode));
+		/*change destination*/
+		dst = stack->top;	
 	}
 	memcpy(dst, src, size);
-	node->current = TO_NEXT(dst, size);
+	stack->top = TO_NEXT(dst, size);
 	stack->count++;
 }
 
@@ -135,21 +133,19 @@ stack_pop(struct gds_stack *stack, void *dst)
 	
 	size  = stack->size;
 	node  = stack->list;
-	src   = node->current;
+	src   = stack->top;
 	/*shift to start of buffer*/
 	start = TO_NEXT(node, sizeof(struct gds_snode));
 	if (src == start) {
-		/*currentent node is empty*/
+		/*current node is empty*/
 		stack->list = node->prev;
 		/*remove node*/
 		free(node);
-		/*change current node*/
-		node = stack->list;
-		src  = node->current;
+		src = stack->list->end;
 	}
 	src = TO_PREV(src, size);
 	memcpy(dst, src, size);
-	node->current = src;	
+	stack->top = src;	
 	stack->count--;
 }
 
@@ -160,20 +156,20 @@ stack_pop2(struct gds_stack *stack)
 	void  *src, *start;
 	size_t size;
 	
-	assert(stack != NULL);
-	
 	size  = stack->size;
 	node  = stack->list;
-	src   = node->current;
+	src   = stack->top;
+	/*shift to start of buffer*/
 	start = TO_NEXT(node, sizeof(struct gds_snode));
 	if (src == start) {
-		/*currentent node is empty*/
+		/*current node is empty*/
 		stack->list = node->prev;
+		/*remove node*/
 		free(node);
-		node = stack->list;
-		src  = node->current;
+		src = stack->list->end;
 	}
-	node->current = TO_PREV(src, size);	
+	src = TO_PREV(src, size);
+	stack->top = src;	
 	stack->count--;
 }
 
@@ -187,12 +183,12 @@ stack_peek(struct gds_stack *stack, void *dst)
 	assert(stack != NULL);
 	assert(dst != NULL);
 	
-	size = stack->size;
-	node = stack->list;
-	src  = node->current;
+	size  = stack->size;
+	node  = stack->list;
+	src   = stack->top;
 	start = TO_NEXT(node, sizeof(struct gds_snode));
 	if (src == start)
-		src = node->prev->current;
+		src = node->prev->end;
 	src = TO_PREV(src, size);	
 	memcpy(dst, src, size);
 }

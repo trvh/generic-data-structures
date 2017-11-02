@@ -5,6 +5,7 @@
 
 struct gds_stack {
 	struct gds_snode *list; /*a top node of list*/
+	void  *top;
 	size_t count; /*number of elements*/
 	size_t size; /*size of one element*/
 };
