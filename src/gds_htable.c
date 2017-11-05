@@ -7,7 +7,10 @@
 
 
 #define HTABLE_SIZE 256
+
 #define KEY(node) ((void *) (((char *) (node)) + (sizeof(struct gds_hnode))))
+
+#define VALUE(node, size_key) ((void *) (((char *) KEY(node)) + (size_key)))
 
 struct gds_hnode {
 	struct gds_hnode *next;
@@ -93,7 +96,7 @@ htable_search(struct gds_htable *htable, void *key)
 	for (node = array[index]; node != NULL; node = node->next)
 		if ((*cmp)(KEY(node), key) == 0)
 			break;
-	return node;
+	return (node != NULL) ? VALUE(node, htable->size_key) : NULL;
 }
 
 void *
@@ -121,7 +124,7 @@ htable_insert(struct gds_htable *htable, void *src, void *key)
 	
 	size_key  = htable->size_key;
 	size_elem = htable->size_elem;
-	if (node != NULL) {
+	if (node == NULL) {
 		/*element not was find, create new node*/
 		size  = sizeof(struct gds_hnode); /*size of node*/
 		size += size_key + size_elem; /*general size*/
@@ -144,7 +147,7 @@ htable_insert(struct gds_htable *htable, void *src, void *key)
 		dst = TO_NEXT(dst, size_key);
 		memcpy(dst, src, size_elem);
 	}
-	return node;
+	return VALUE(node, size_key);
 }
 
 void
