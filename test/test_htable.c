@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "../src/gds_htable.h"
 
-#define MAX 100000
+#define MAX 1000000
 
 size_t
 hash(void *key)

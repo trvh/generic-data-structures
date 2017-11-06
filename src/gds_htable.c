@@ -16,7 +16,7 @@ struct gds_hnode {
 	struct gds_hnode *next;
 };
 
-static void set_arr_null(struct gds_hnode **array, size_t size);
+static void set_arr_null(struct gds_hnode **buckets, size_t size);
 
 void
 htable_create(struct gds_htable *htable,
@@ -24,7 +24,7 @@ htable_create(struct gds_htable *htable,
 					int (*cmp)(void *hkey, void *key),
 					size_t size_elem, size_t size_key)
 {
-	struct gds_hnode **array;
+	struct gds_hnode **buckets;
 
 	assert(htable != NULL);
 	assert(hash != NULL);
@@ -32,54 +32,54 @@ htable_create(struct gds_htable *htable,
 	assert(size_elem > 0);
 	assert(size_key > 0);
 	
-	/*create array of nodes*/
-	array = (struct gds_hnode **)
+	/*create buckets of nodes*/
+	buckets = (struct gds_hnode **)
 				malloc(sizeof(struct gds_hnode *) * HTABLE_SIZE);
-	assert(array != NULL);
-	set_arr_null(array, HTABLE_SIZE);
+	assert(buckets != NULL);
+	set_arr_null(buckets, HTABLE_SIZE);
 
-	htable->table.array = array;
-	htable->table.size  = HTABLE_SIZE;
-	htable->hash = hash;
-	htable->cmp  = cmp;
-	htable->size_elem = size_elem;
-	htable->size_key  = size_key;
-	htable->count     = 0;
+	htable->table.buckets = buckets;
+	htable->table.size    = HTABLE_SIZE;
+	htable->hash		  = hash;
+	htable->cmp			  = cmp;
+	htable->size_elem	  = size_elem;
+	htable->size_key	  = size_key;
+	htable->count		  = 0;
 }
 
 void
 htable_delete(struct gds_htable *htable)
 {
-	struct gds_hnode **array, **end;
+	struct gds_hnode **buckets, **end;
 	struct gds_hnode  *node, *next;
 	size_t			   size;
 
 	assert(htable != NULL);
 	
-	array = htable->table.array;
-	size  = htable->table.size;
-	for (end = array + size; array < end; array++)
-		for (node = *array; node != NULL; node = next) {
+	buckets = htable->table.buckets;
+	size    = htable->table.size;
+	for (end = buckets + size; buckets < end; buckets++)
+		for (node = *buckets; node != NULL; node = next) {
 			next = node->next;
 			free(node);
 		}
-	free(htable->table.array);
+	free(htable->table.buckets);
 }
 
 void
-set_arr_null(struct gds_hnode **array, size_t size)
+set_arr_null(struct gds_hnode **buckets, size_t size)
 {
 	struct gds_hnode **end;
 
-	for (end = array + size; array < end; array++)
-		*array = NULL;
+	for (end = buckets + size; buckets < end; buckets++)
+		*buckets = NULL;
 }
 
 void *
 htable_search(struct gds_htable *htable, void *key)
 {
 
-	struct gds_hnode **array;
+	struct gds_hnode **buckets;
 	struct gds_hnode  *node;
 	size_t (*hash)(void *key);
 	int (*cmp)(void *hkey, void *key);
@@ -88,12 +88,12 @@ htable_search(struct gds_htable *htable, void *key)
 	assert(htable != NULL);
 	assert(key != NULL);
 	
-	hash  = htable->hash;
-	cmp   = htable->cmp;
-	array = htable->table.array;
-	size  = htable->table.size;
-	index = (*hash)(key) % size;
-	for (node = array[index]; node != NULL; node = node->next)
+	hash    = htable->hash;
+	cmp     = htable->cmp;
+	buckets = htable->table.buckets;
+	size    = htable->table.size;
+	index   = (*hash)(key) % size;
+	for (node = buckets[index]; node != NULL; node = node->next)
 		if ((*cmp)(KEY(node), key) == 0)
 			break;
 	return (node != NULL) ? VALUE(node, htable->size_key) : NULL;
@@ -102,7 +102,7 @@ htable_search(struct gds_htable *htable, void *key)
 void *
 htable_insert(struct gds_htable *htable, void *src, void *key)
 {
-	struct gds_hnode **array;
+	struct gds_hnode **buckets;
 	struct gds_hnode  *node;
 	size_t (*hash)(void *key);
 	int (*cmp)(void *hkey, void *key);
@@ -113,12 +113,12 @@ htable_insert(struct gds_htable *htable, void *src, void *key)
 	assert(src != NULL);
 	assert(key != NULL);
 	
-	hash  = htable->hash;
-	cmp   = htable->cmp;
-	array = htable->table.array;
-	size  = htable->table.size;
-	index = (*hash)(key) % size;	
-	for (node = array[index]; node != NULL; node = node->next)
+	hash    = htable->hash;
+	cmp     = htable->cmp;
+	buckets = htable->table.buckets;
+	size    = htable->table.size;
+	index   = (*hash)(key) % size;	
+	for (node = buckets[index]; node != NULL; node = node->next)
 		if ((*cmp)(KEY(node), key) == 0)
 			break;
 	
@@ -132,19 +132,22 @@ htable_insert(struct gds_htable *htable, void *src, void *key)
 		assert(node != NULL);
 		
 		/*copy value and key in node*/
-		dst = TO_NEXT(node, sizeof(struct gds_hnode));
+		dst = KEY(node);
 		memcpy(dst, key, size_key);
-		dst = TO_NEXT(dst, size_key);
+		dst = VALUE(node, size_key);
 		memcpy(dst, src, size_elem);
 		
 		/*insert new node in table*/
-		node->next   = array[index];
-		array[index] = node;
+		node->next     = buckets[index];
+		buckets[index] = node;
 		htable->count++;
+		
+		/*to double of size*/
+		if (htable->count == htable->table.size)
+			htable_resize(htable, htable->table.size * 2);
 	} else {
 		/*element was find, update value*/
-		dst = KEY(node);
-		dst = TO_NEXT(dst, size_key);
+		dst = VALUE(node, size_key);
 		memcpy(dst, src, size_elem);
 	}
 	return VALUE(node, size_key);
@@ -153,7 +156,7 @@ htable_insert(struct gds_htable *htable, void *src, void *key)
 void
 htable_remove(struct gds_htable *htable, void *key)
 {
-	struct gds_hnode **array;
+	struct gds_hnode **buckets;
 	struct gds_hnode  *node, *prev, *head;
 	size_t (*hash)(void *key);
 	int (*cmp)(void *hkey, void *key);
@@ -162,17 +165,17 @@ htable_remove(struct gds_htable *htable, void *key)
 	assert(htable != NULL);
 	assert(key != NULL);
 	
-	hash  = htable->hash;
-	cmp   = htable->cmp;
-	array = htable->table.array;
-	size  = htable->table.size;
-	index = (*hash)(key) % size;
-	head  = array[index];
+	hash    = htable->hash;
+	cmp     = htable->cmp;
+	buckets = htable->table.buckets;
+	size    = htable->table.size;
+	index   = (*hash)(key) % size;
+	head    = buckets[index];
 	for (node = head; node != NULL; node = node->next) {
 		if ((*cmp)(KEY(node), key) == 0) {
 			/*element was find, remove it*/
 			if (node == head) /*is it head node of list?*/
-				array[index] = node->next;
+				buckets[index] = node->next;
 			else
 				prev->next = node->next;
 			/*remove node*/
@@ -182,4 +185,33 @@ htable_remove(struct gds_htable *htable, void *key)
 		}
 		prev = node; /*remember previous node*/
 	}
+}
+
+void
+htable_resize(struct gds_htable *htable, size_t size_new)
+{
+	struct gds_hnode **buckets, **buckets_new, **end;
+	struct gds_hnode  *node;
+	size_t (*hash)(void *key);
+	size_t size;
+
+	assert(htable != NULL);
+	assert(size_new > 0);
+		
+	buckets_new = 
+		(struct gds_hnode **) malloc(sizeof(struct gds_hnode *) * size_new);
+	set_arr_null(buckets_new, size_new);
+	
+	hash    = htable->hash;
+	buckets = htable->table.buckets;
+	size    = htable->table.size;
+	/*copy all nodes in new buckets*/
+	for (end = buckets + size; buckets < end; buckets++)
+		for (node = *buckets; node != NULL; node = node->next) {
+			size_t index = (*hash)(KEY(node)) % size_new;
+			buckets_new[index] = node;
+		}
+	free(htable->table.buckets);
+	htable->table.buckets = buckets_new;
+	htable->table.size    = size_new;
 }

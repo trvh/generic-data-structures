@@ -2,8 +2,8 @@
 #define GDS_HASH_TABLE_HEADER
 
 struct gds_table {
-	struct gds_hnode **array;
-	size_t size; /*size of array*/ 
+	struct gds_hnode **buckets;
+	size_t size; /*size of buckets*/ 
 };
 
 struct gds_htable {
@@ -28,6 +28,7 @@ void htable_delete(struct gds_htable *htable);
 void *htable_search(struct gds_htable *htable, void *key);
 void *htable_insert(struct gds_htable *htable, void *src, void *key);
 void htable_remove(struct gds_htable *htable, void *key);
+void htable_resize(struct gds_htable *htable, size_t size_new);
 
 #ifdef __cplusplus
 }
