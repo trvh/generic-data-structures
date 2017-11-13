@@ -191,7 +191,7 @@ void
 htable_resize(struct gds_htable *htable, size_t size_new)
 {
 	struct gds_hnode **buckets, **buckets_new, **end;
-	struct gds_hnode  *node;
+	struct gds_hnode  *node, *next;
 	size_t (*hash)(void *key);
 	size_t size;
 
@@ -207,8 +207,10 @@ htable_resize(struct gds_htable *htable, size_t size_new)
 	size    = htable->table.size;
 	/*copy all nodes in new buckets*/
 	for (end = buckets + size; buckets < end; buckets++)
-		for (node = *buckets; node != NULL; node = node->next) {
+		for (node = *buckets; node != NULL; node = next) {
 			size_t index = (*hash)(KEY(node)) % size_new;
+			next = node->next; /*remember next node*/	
+			node->next = buckets_new[index]; /*remove old reference*/
 			buckets_new[index] = node;
 		}
 	free(htable->table.buckets);
