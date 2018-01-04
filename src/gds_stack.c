@@ -65,10 +65,10 @@ stack_clear(struct gds_stack *stack)
 		free(node);
 		node = prev;
 	}
-	stack->list   = node;
+	stack->list = node;
 	/*shift to start of buffer*/
-	stack->top    = TO_NEXT(node, sizeof(struct gds_snode));
-	stack->count  = 0;
+	stack->top   = TO_NEXT(node, sizeof(struct gds_snode));
+	stack->count = 0;
 }
 
 struct gds_snode *
@@ -129,6 +129,7 @@ stack_pop(struct gds_stack *stack, void *dst)
 	size_t size;
 	
 	assert(stack != NULL);
+	assert(stack->count != 0);
 	assert(dst != NULL);
 	
 	size  = stack->size;
@@ -156,20 +157,20 @@ stack_pop2(struct gds_stack *stack)
 	void  *src, *start;
 	size_t size;
 	
+	assert(stack != NULL);
+	assert(stack->count != 0);
+	
 	size  = stack->size;
 	node  = stack->list;
 	src   = stack->top;
-	/*shift to start of buffer*/
 	start = TO_NEXT(node, sizeof(struct gds_snode));
 	if (src == start) {
 		/*current node is empty*/
 		stack->list = node->prev;
-		/*remove node*/
 		free(node);
 		src = stack->list->end;
 	}
-	src = TO_PREV(src, size);
-	stack->top = src;	
+	stack->top = TO_PREV(src, size);
 	stack->count--;
 }
 
@@ -181,6 +182,7 @@ stack_peek(struct gds_stack *stack, void *dst)
 	size_t size;
 	
 	assert(stack != NULL);
+	assert(stack->count != 0);
 	assert(dst != NULL);
 	
 	size  = stack->size;

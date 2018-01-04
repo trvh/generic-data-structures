@@ -41,9 +41,10 @@ test2()
 		queue_add(&queue, &j);
 
 	sum = 0;
-	while (queue.count-- != 0) {
+	while (queue.count != 0) {
 		queue_front(&queue, &i);
 		sum += i;
+		queue.count--;
 	}
 	printf("%ld\n", sum);
 	

@@ -129,6 +129,7 @@ queue_pop(struct gds_queue *queue, void *dst)
 	size_t size;
 
 	assert(queue != NULL);
+	assert(queue->count != 0);
 	assert(dst != NULL);
 	
 	size = queue->size;
@@ -158,6 +159,7 @@ queue_front(struct gds_queue *queue, void *dst)
 	size_t size;
 
 	assert(queue != NULL);
+	assert(queue->count != 0);
 	assert(dst != NULL);
 	
 	size = queue->size;
@@ -180,6 +182,7 @@ queue_back(struct gds_queue *queue, void *dst)
 	size_t size;
 
 	assert(queue != NULL);
+	assert(queue->count != 0);
 	assert(dst != NULL);
 	
 	size = queue->size;

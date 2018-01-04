@@ -6,8 +6,8 @@
 struct gds_darray {
 	void  *buffer;
 	size_t size; /*size of element*/
-	size_t count; /*common size of buffer*/
-	size_t current; /*count of elements in buffer*/
+	size_t count; /*max number of elements in buffer*/
+	size_t current; /*current number of elements in buffer*/
 };
 
 #ifdef __cplusplus
