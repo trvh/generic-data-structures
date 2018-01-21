@@ -4,10 +4,11 @@
 #include <stdlib.h>
 
 struct gds_stack {
-	struct gds_snode *list; /*a top node of list*/
-	void  *top;
+	void  *start; /*pointer to start of buffer*/
+	void  *end;   /*pointer to end of buffer*/
+	void  *top;   /*pointer to current position in buffer*/
 	size_t count; /*number of elements*/
-	size_t size; /*size of one element*/
+	size_t size;  /*size of one element*/
 };
 
 #ifdef __cplusplus
@@ -20,8 +21,6 @@ void stack_clear(struct gds_stack *stack);
 
 void stack_push(struct gds_stack *stack, void *src);
 void stack_pop(struct gds_stack *stack, void *dst);
-
-void stack_pop2(struct gds_stack *stack);
 void stack_peek(struct gds_stack *stack, void *dst);
 
 #ifdef __cplusplus

@@ -38,27 +38,23 @@ dlist_inhead(struct gds_dlist *list, void *src)
 	assert(list != NULL);
 	assert(src != NULL);
 	
-	/*create buffer, which will contents header and data*/
-	size = sizeof(struct gds_dnode) + list->size;
-	new_node = (struct gds_dnode *) malloc(size);
+	size = list->size;
+	new_node = (struct gds_dnode *) malloc(sizeof(struct gds_dnode) + size);
 	assert(new_node != NULL);
 	
-	/*offset from header of node, here start of buffer for data*/
+	/*skip header*/
 	dst = TO_NEXT(new_node, sizeof(struct gds_dnode));
-	/*copy data in buffer*/
-	memcpy(dst, src, list->size);
+	memcpy(dst, src, size);
 	
 	head = list->head;
-	if (head == NULL) {
-		/*it is first node*/
-		list->head = list->tail = new_node;
-		new_node->prev = new_node->next  = NULL;
-	} else {
-		new_node->next = head;
+	if (head == NULL) /*it is first node?*/
+		list->tail = new_node;
+	else
 		head->prev = new_node;
-		new_node->prev = NULL;
-		list->head = new_node;
-	}
+
+	new_node->next = head;
+	new_node->prev = NULL;
+	list->head = new_node;
 	list->count++;
 	return new_node;
 }
@@ -73,24 +69,23 @@ dlist_intail(struct gds_dlist *list, void *src)
 	assert(list != NULL);
 	assert(src != NULL);
 	
-	size = sizeof(struct gds_dnode) + list->size;
-	new_node = (struct gds_dnode *) malloc(size);
+	size = list->size;
+	new_node = (struct gds_dnode *) malloc(sizeof(struct gds_dnode) + size);
 	assert(new_node != NULL);
 	
+	/* skip header*/
 	dst = TO_NEXT(new_node, sizeof(struct gds_dnode));
-	memcpy(dst, src, list->size);
+	memcpy(dst, src, size);
 	
 	tail = list->tail;
-	if (tail == NULL) {
-		/*it is first node*/
-		list->head = list->tail = new_node;
-		new_node->prev = new_node->next  = NULL;
-	} else {
-		new_node->prev = tail;
-		tail->next = new_node;
-		new_node->next = NULL;
-		list->tail = new_node;
-	}
+	if (tail == NULL) { /*it is first node?*/
+		list->head = new_node;
+	else
+		tail->next = new_node;	
+
+	new_node->prev = tail;
+	new_node->next = NULL;
+	list->tail = new_node;
 	list->count++;
 	return new_node;
 }
@@ -107,15 +102,15 @@ dlist_after(struct gds_dlist *list, struct gds_dnode *node, void *src)
 	assert(node != NULL);
 	assert(src != NULL);
 	
-	size = sizeof(struct gds_dnode) + list->size;	
-	new_node = (struct gds_dnode *) malloc(size);
+	size = list->size;
+	new_node = (struct gds_dnode *) malloc(sizeof(struct gds_dnode) + size);
 	assert(new_node != NULL);
 	
 	dst = TO_NEXT(new_node, sizeof(struct gds_dnode));
-	memcpy(dst, src, list->size);
+	memcpy(dst, src, size);
 	
 	tail = list->tail;
-	if (tail == node) {		
+	if (tail == node) {
 		new_node->prev = tail;
 		tail->next = new_node;
 		new_node->next = NULL;
@@ -141,12 +136,12 @@ dlist_before(struct gds_dlist *list, struct gds_dnode *node, void *src)
 	assert(node != NULL);
 	assert(src != NULL);
 	
-	size = sizeof(struct gds_dnode) + list->size;	
-	new_node = (struct gds_dnode *) malloc(size);
+	size = list->size;
+	new_node = (struct gds_dnode *) malloc(sizeof(struct gds_dnode) + size);
 	assert(new_node != NULL);
 	
 	dst = TO_NEXT(new_node, sizeof(struct gds_dnode));
-	memcpy(dst, src, list->size);
+	memcpy(dst, src, size);
 	
 	head = list->head;
 	if (head == node) {		
@@ -180,7 +175,7 @@ dlist_remove(struct gds_dlist *list, struct gds_dnode *node)
 			head = head->next;
 			head->prev = NULL;
 			list->head = head;
-		}	
+		}
 	} else {
 		prev = node->prev;
 		prev->next = node->next;
