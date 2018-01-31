@@ -15,10 +15,9 @@ clear way for implementation generic data structures on C than imitate templates
 
 	Library provide the following functional:
 1) you can create any number of instance of lists, dynamic arrays, stacks etc.
-2) concrete instance of data structure (list, stack) can keep one type (int, 
-double, user data, etc).
-3) All data pass to instance will save in heap and all work bounding with
+2) instance of data structure (list, stack) can keep one type (int, double, user data).
+3) all data pass to instance will save in heap and all work bounding with
 memory allocation will hidden in library.
 
-	Source code of library written in ANSI C89 (any compiler of c/c++ can compile it).
-Library dependece only libc (realloc, malloc, free, memcpy, memmove).
+	Source code of library written in ANSI C89 (any compiler of C/C++ can compile it).
+Library dependece only from libc (realloc, malloc, free, memcpy, memmove).
